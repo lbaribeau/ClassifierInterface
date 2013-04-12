@@ -41,6 +41,7 @@
 }
 - (CPString)remotePath  //Ratatosk
 {
+    /*
     if ([self pk])
     {
         return [self pk];
@@ -48,7 +49,8 @@
     else
     {
         return @"/classifiers/";
-    }
+    }*/
+    return @"/";
 }
 @end
 
