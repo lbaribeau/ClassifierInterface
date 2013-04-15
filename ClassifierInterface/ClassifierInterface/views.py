@@ -46,8 +46,13 @@ def interface(request):
 
 @api_view(['GET'])
 def home(request):
-    encoded_glyphs = get_glyph_pngs(2)
-    return Response([{"glyph_png_2": encoded_glyphs[0]}])
+    encoded_glyphs = get_glyph_pngs(2)  # Would like the client to choose this argument
+    #return Response([{"glyph_png_2": encoded_glyphs[0]}, {"glyph_png2_2": encoded_glyphs[1]}])
+    
+    #response_list = [{"glyph_png_" + str(i): encoded_glyphs[i]} for i in range(0, len(encoded_glyphs))]
+    #return Response(response_list)
+    
+    return Response([{"glyph_png_0": encoded_glyphs[0], "glyph_png_1": encoded_glyphs[1]}])
 
 
 def get_glyph_pngs(id):
