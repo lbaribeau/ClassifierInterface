@@ -5,16 +5,15 @@ from uuidfield import UUIDField
 
 class Classifier(models.Model):
     uuid = UUIDField(primary_key=True, auto=True)
-    # add "name"?     maybe later
-    # add "created"?  find out why other models have created
+    name = models.CharField(max_length=255)
+    # add "created"?
     # add "updated"?
 
     def __unicode__(self):
-        return "classifier" + self.UUID
+        return u"classifier" + str(self.uuid)
 
 
 class Project(models.Model):
-    # Rodan project
+    # Rodan project.  Stub.
     classifiers = models.ManyToManyField(Classifier, related_name="classifiers", blank=True)
     pass
-
