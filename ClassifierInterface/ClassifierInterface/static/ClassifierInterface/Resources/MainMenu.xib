@@ -464,10 +464,10 @@
 			<object class="NSCustomObject" id="635946545">
 				<string key="NSClassName">AppController</string>
 			</object>
-			<object class="NSCustomObject" id="172047304">
+			<object class="NSCustomObject" id="883496665">
 				<string key="NSClassName">GlyphController</string>
 			</object>
-			<object class="NSArrayController" id="506968695">
+			<object class="NSArrayController" id="446355074">
 				<bool key="NSEditable">YES</bool>
 				<object class="_NSManagedProxy" key="_NSManagedProxy"/>
 				<bool key="NSAvoidsEmptySelection">YES</bool>
@@ -742,7 +742,7 @@
 				<string key="NSClassName">ClassifierController</string>
 			</object>
 			<object class="NSCustomObject" id="334228070">
-				<string key="NSClassName">ClassifierDelegate</string>
+				<string key="NSClassName">LoadClassifiersDelegate</string>
 			</object>
 			<object class="NSArrayController" id="808201376">
 				<bool key="NSEditable">YES</bool>
@@ -752,6 +752,9 @@
 				<bool key="NSSelectsInsertedObjects">YES</bool>
 				<bool key="NSFilterRestrictsInsertion">YES</bool>
 				<bool key="NSClearsFilterPredicateOnInsertion">YES</bool>
+			</object>
+			<object class="NSCustomObject" id="472042878">
+				<string key="NSClassName">OpenClassifiersWindowController</string>
 			</object>
 		</object>
 		<object class="IBObjectContainer" key="IBDocument.Objects">
@@ -801,9 +804,17 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">glyphController</string>
 						<reference key="source" ref="635946545"/>
-						<reference key="destination" ref="172047304"/>
+						<reference key="destination" ref="883496665"/>
 					</object>
 					<int key="connectionID">643</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">openClassifiersWindowController</string>
+						<reference key="source" ref="635946545"/>
+						<reference key="destination" ref="472042878"/>
+					</object>
+					<int key="connectionID">655</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBBindingConnection" key="connection">
@@ -936,11 +947,19 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
-						<string key="label">classifierDelegate</string>
+						<string key="label">loadClassifiersDelegate</string>
 						<reference key="source" ref="328541566"/>
 						<reference key="destination" ref="334228070"/>
 					</object>
-					<int key="connectionID">640</int>
+					<int key="connectionID">646</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">OpenClassifiersWindow</string>
+						<reference key="source" ref="328541566"/>
+						<reference key="destination" ref="649977067"/>
+					</object>
+					<int key="connectionID">650</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
@@ -1060,10 +1079,34 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">glyphArrayController</string>
-						<reference key="source" ref="172047304"/>
-						<reference key="destination" ref="506968695"/>
+						<reference key="source" ref="883496665"/>
+						<reference key="destination" ref="446355074"/>
 					</object>
 					<int key="connectionID">645</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">cancelButton</string>
+						<reference key="source" ref="472042878"/>
+						<reference key="destination" ref="461277571"/>
+					</object>
+					<int key="connectionID">657</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">openButton</string>
+						<reference key="source" ref="472042878"/>
+						<reference key="destination" ref="727334419"/>
+					</object>
+					<int key="connectionID">658</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">openClassifiersWindow</string>
+						<reference key="source" ref="472042878"/>
+						<reference key="destination" ref="649977067"/>
+					</object>
+					<int key="connectionID">659</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -1362,6 +1405,7 @@
 							<reference ref="529977932"/>
 						</object>
 						<reference key="parent" ref="541740192"/>
+						<string key="objectName">Open Button</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">600</int>
@@ -1376,6 +1420,7 @@
 							<reference ref="145074640"/>
 						</object>
 						<reference key="parent" ref="541740192"/>
+						<string key="objectName">Cancel Button</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">598</int>
@@ -1458,7 +1503,6 @@
 						<int key="objectID">612</int>
 						<reference key="object" ref="334228070"/>
 						<reference key="parent" ref="0"/>
-						<string key="objectName">Classifier Delegate</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">615</int>
@@ -1514,15 +1558,20 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">642</int>
-						<reference key="object" ref="172047304"/>
+						<reference key="object" ref="883496665"/>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">Glyph Controller</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">644</int>
-						<reference key="object" ref="506968695"/>
+						<reference key="object" ref="446355074"/>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">Glyph Array Controller</string>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">652</int>
+						<reference key="object" ref="472042878"/>
+						<reference key="parent" ref="0"/>
 					</object>
 				</object>
 			</object>
@@ -1576,6 +1625,7 @@
 					<string>595.NSWindowTemplate.visibleAtLaunch</string>
 					<string>596.IBPluginDependency</string>
 					<string>597.IBPluginDependency</string>
+					<string>597.userInterfaceItemIdentifier</string>
 					<string>598.IBPluginDependency</string>
 					<string>599.IBPluginDependency</string>
 					<string>600.IBPluginDependency</string>
@@ -1604,6 +1654,7 @@
 					<string>633.IBPluginDependency</string>
 					<string>642.IBPluginDependency</string>
 					<string>644.IBPluginDependency</string>
+					<string>652.IBPluginDependency</string>
 				</object>
 				<object class="NSArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1656,6 +1707,7 @@
 					<boolean value="NO"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>cancelButton</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -1690,6 +1742,7 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="unlocalizedProperties">
@@ -1704,7 +1757,7 @@
 				<reference key="dict.values" ref="0"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">645</int>
+			<int key="maxID">659</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1718,12 +1771,14 @@
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>classifierController</string>
 							<string>glyphController</string>
+							<string>openClassifiersWindowController</string>
 							<string>theWindow</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>ClassifierController</string>
 							<string>GlyphController</string>
+							<string>OpenClassifiersWindowController</string>
 							<string>NSWindow</string>
 						</object>
 					</object>
@@ -1733,6 +1788,7 @@
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>classifierController</string>
 							<string>glyphController</string>
+							<string>openClassifiersWindowController</string>
 							<string>theWindow</string>
 						</object>
 						<object class="NSArray" key="dict.values">
@@ -1744,6 +1800,10 @@
 							<object class="IBToOneOutletInfo">
 								<string key="name">glyphController</string>
 								<string key="candidateClassName">GlyphController</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">openClassifiersWindowController</string>
+								<string key="candidateClassName">OpenClassifiersWindowController</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">theWindow</string>
@@ -1760,38 +1820,40 @@
 					<string key="className">ClassifierController</string>
 					<string key="superclassName">NSObject</string>
 					<object class="NSMutableDictionary" key="outlets">
-						<string key="NS.key.0">classifierDelegate</string>
-						<string key="NS.object.0">ClassifierDelegate</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>OpenClassifiersWindow</string>
+							<string>loadClassifiersDelegate</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>NSWindow</string>
+							<string>LoadClassifiersDelegate</string>
+						</object>
 					</object>
 					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<string key="NS.key.0">classifierDelegate</string>
-						<object class="IBToOneOutletInfo" key="NS.object.0">
-							<string key="name">classifierDelegate</string>
-							<string key="candidateClassName">ClassifierDelegate</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>OpenClassifiersWindow</string>
+							<string>loadClassifiersDelegate</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBToOneOutletInfo">
+								<string key="name">OpenClassifiersWindow</string>
+								<string key="candidateClassName">NSWindow</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">loadClassifiersDelegate</string>
+								<string key="candidateClassName">LoadClassifiersDelegate</string>
+							</object>
 						</object>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/ClassifierController.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">ClassifierDelegate</string>
-					<string key="superclassName">NSObject</string>
-					<object class="NSMutableDictionary" key="outlets">
-						<string key="NS.key.0">classifierArrayController</string>
-						<string key="NS.object.0">NSArrayController</string>
-					</object>
-					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<string key="NS.key.0">classifierArrayController</string>
-						<object class="IBToOneOutletInfo" key="NS.object.0">
-							<string key="name">classifierArrayController</string>
-							<string key="candidateClassName">NSArrayController</string>
-						</object>
-					</object>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/ClassifierDelegate.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
@@ -1811,6 +1873,72 @@
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/GlyphController.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">LoadClassifiersDelegate</string>
+					<string key="superclassName">NSObject</string>
+					<object class="NSMutableDictionary" key="outlets">
+						<string key="NS.key.0">classifierArrayController</string>
+						<string key="NS.object.0">NSArrayController</string>
+					</object>
+					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<string key="NS.key.0">classifierArrayController</string>
+						<object class="IBToOneOutletInfo" key="NS.object.0">
+							<string key="name">classifierArrayController</string>
+							<string key="candidateClassName">NSArrayController</string>
+						</object>
+					</object>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/LoadClassifiersDelegate.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">OpenClassifiersWindowController</string>
+					<string key="superclassName">NSObject</string>
+					<object class="NSMutableDictionary" key="outlets">
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>cancelButton</string>
+							<string>openButton</string>
+							<string>openClassifiersWindow</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>NSButton</string>
+							<string>NSButton</string>
+							<string>NSWindow</string>
+						</object>
+					</object>
+					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>cancelButton</string>
+							<string>openButton</string>
+							<string>openClassifiersWindow</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBToOneOutletInfo">
+								<string key="name">cancelButton</string>
+								<string key="candidateClassName">NSButton</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">openButton</string>
+								<string key="candidateClassName">NSButton</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">openClassifiersWindow</string>
+								<string key="candidateClassName">NSWindow</string>
+							</object>
+						</object>
+					</object>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/OpenClassifiersWindowController.h</string>
 					</object>
 				</object>
 			</object>
