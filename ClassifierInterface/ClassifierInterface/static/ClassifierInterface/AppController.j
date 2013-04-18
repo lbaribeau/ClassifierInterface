@@ -32,6 +32,5 @@
 {
     //[glyphController fetchGlyphs];
     [classifierController fetchClassifiers];
-    [openClassifiersWindowController tieCancelButtonToCloseFunction];
 }
 @end

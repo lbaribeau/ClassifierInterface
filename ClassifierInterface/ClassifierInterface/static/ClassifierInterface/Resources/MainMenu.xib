@@ -464,10 +464,10 @@
 			<object class="NSCustomObject" id="635946545">
 				<string key="NSClassName">AppController</string>
 			</object>
-			<object class="NSCustomObject" id="147613916">
+			<object class="NSCustomObject" id="607491906">
 				<string key="NSClassName">GlyphController</string>
 			</object>
-			<object class="NSArrayController" id="586874732">
+			<object class="NSArrayController" id="546534852">
 				<bool key="NSEditable">YES</bool>
 				<object class="_NSManagedProxy" key="_NSManagedProxy"/>
 				<bool key="NSAvoidsEmptySelection">YES</bool>
@@ -753,7 +753,7 @@
 				<bool key="NSFilterRestrictsInsertion">YES</bool>
 				<bool key="NSClearsFilterPredicateOnInsertion">YES</bool>
 			</object>
-			<object class="NSCustomObject" id="265220303">
+			<object class="NSCustomObject" id="146197096">
 				<string key="NSClassName">OpenClassifiersWindowController</string>
 			</object>
 		</object>
@@ -804,7 +804,7 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">glyphController</string>
 						<reference key="source" ref="635946545"/>
-						<reference key="destination" ref="147613916"/>
+						<reference key="destination" ref="607491906"/>
 					</object>
 					<int key="connectionID">643</int>
 				</object>
@@ -812,7 +812,7 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">openClassifiersWindowController</string>
 						<reference key="source" ref="635946545"/>
-						<reference key="destination" ref="265220303"/>
+						<reference key="destination" ref="146197096"/>
 					</object>
 					<int key="connectionID">655</int>
 				</object>
@@ -1071,15 +1071,15 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">glyphArrayController</string>
-						<reference key="source" ref="147613916"/>
-						<reference key="destination" ref="586874732"/>
+						<reference key="source" ref="607491906"/>
+						<reference key="destination" ref="546534852"/>
 					</object>
 					<int key="connectionID">645</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">cancelButton</string>
-						<reference key="source" ref="265220303"/>
+						<reference key="source" ref="146197096"/>
 						<reference key="destination" ref="461277571"/>
 					</object>
 					<int key="connectionID">657</int>
@@ -1087,7 +1087,7 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">openButton</string>
-						<reference key="source" ref="265220303"/>
+						<reference key="source" ref="146197096"/>
 						<reference key="destination" ref="727334419"/>
 					</object>
 					<int key="connectionID">658</int>
@@ -1095,7 +1095,7 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">openClassifiersWindow</string>
-						<reference key="source" ref="265220303"/>
+						<reference key="source" ref="146197096"/>
 						<reference key="destination" ref="649977067"/>
 					</object>
 					<int key="connectionID">659</int>
@@ -1550,19 +1550,19 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">642</int>
-						<reference key="object" ref="147613916"/>
+						<reference key="object" ref="607491906"/>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">Glyph Controller</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">644</int>
-						<reference key="object" ref="586874732"/>
+						<reference key="object" ref="546534852"/>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">Glyph Array Controller</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">652</int>
-						<reference key="object" ref="265220303"/>
+						<reference key="object" ref="146197096"/>
 						<reference key="parent" ref="0"/>
 					</object>
 				</object>
