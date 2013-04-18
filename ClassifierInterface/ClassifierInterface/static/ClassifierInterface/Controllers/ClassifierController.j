@@ -2,23 +2,20 @@
 
 @implementation ClassifierController : CPObject
 {
-    @outlet CPArrayController classifierArrayController;
-    @outlet LoadClassifierNamesDelegate loadClassifierNamesDelegate;
+    @outlet ClassifierDelegate classifierDelegate;
 }
 
 - (void)fetchClassifiers
 {
-    console.log("Fetching names");
-    console.log(classifierArrayController);
     [WLRemoteAction schedule:WLRemoteActionGetType
                     path:'/classifiers/'
-                    delegate:loadClassifierNamesDelegate
+                    delegate:classifierDelegate
                     message:"Loading classifier from home"];
 }
 @end
 
 
-@implementation LoadClassifierNamesDelegate : CPObject
+@implementation ClassifierDelegate : CPObject
 {
     @outlet CPArrayController   classifierArrayController;
 }

@@ -13,11 +13,11 @@ def home(request):
 
 class ClassifierList(generics.ListCreateAPIView):
     model = Classifier
-    permission_classes = (permissions.AllowAny,)  # TODO: Delete this
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # TODO: Delete this
     serializer_class = ClassifierSerializer
 
 
 class ClassifierDetail(generics.RetrieveUpdateDestroyAPIView):
     model = Classifier
-    permission_classes = (permissions.AllowAny,)  # TODO: Delete this
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # TODO: Delete this
     serializer_class = ClassifierSerializer

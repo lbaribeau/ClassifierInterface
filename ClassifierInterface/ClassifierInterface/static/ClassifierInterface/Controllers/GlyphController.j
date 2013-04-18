@@ -12,10 +12,8 @@
 
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
-    console.log("Remote Action Did Finish");
+    console.log("Fetched glyphs");
     var glyphs = [Classifier objectsFromJson:[anAction result]];
-    //[glyphArrayController addObjects:glyphs];
-    [glyphArrayController addObjects:[glyphs[0]]];
-      // (I don't want to write XCode to handle an array of more than one yet)
+    [glyphArrayController addObjects:glyphs];
 }
 @end

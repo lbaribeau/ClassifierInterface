@@ -11,7 +11,7 @@ urlpatterns += patterns('',
                         )
 
 urlpatterns += format_suffix_patterns(
-    patterns('ClassifierInterface.views',
+    patterns('ClassifierInterface.views',  # ClassifierInterface needs to be there else admin site doesn't resolve.
              #url(r'^browse/$', 'api_root'),
              url(r'^$', 'home'),
              #url(r'^interface/$', "interface"),

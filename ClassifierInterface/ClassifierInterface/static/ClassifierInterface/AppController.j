@@ -17,9 +17,9 @@
 
 @implementation AppController : CPObject
 {
-    CPWindow    theWindow;
-    @outlet CPObject    glyphController;
-    @outlet ClassifierController    classifierController;
+    @outlet CPWindow theWindow;
+    @outlet GlyphController glyphController;
+    @outlet ClassifierController classifierController;
 }
 - (void)awakeFromCib
 {
@@ -28,7 +28,7 @@
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-    [glyphController fetchGlyphs];
+    //[glyphController fetchGlyphs];
     [classifierController fetchClassifiers];
 }
 @end
