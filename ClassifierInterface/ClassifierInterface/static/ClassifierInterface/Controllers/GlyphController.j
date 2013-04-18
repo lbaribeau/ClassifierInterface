@@ -7,6 +7,7 @@
 - (void)fetchGlyphs
 {
     console.log("Fetching glyphs");
+    // Need to design urls for glyphs before this will work again.
     [WLRemoteAction schedule:WLRemoteActionGetType path:'/' delegate:self message:"Loading glyph from home"];
 }
 

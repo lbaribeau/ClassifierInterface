@@ -32,17 +32,6 @@
 {
     //[glyphController fetchGlyphs];
     [classifierController fetchClassifiers];
-    [classifierController debugPrintWindow];  // Works
-    //[openClassifiersWindowController init];  // 2nd call to init?
-                                             // Maybe just giving the instance to AppController will help
-    [openClassifiersWindowController debugPrintWindow];
-    //[openClassifiersWindowController helloWorld];
     [openClassifiersWindowController tieCancelButtonToCloseFunction];
-}
-- (void)closeWindow
-{
-    console.log("Cancel button was pressed.");
-    //[openClassifiersWindow close];
-    //[openClassifiersWindow [cancelButton setAction:@selector(closeWindow:)]];
 }
 @end
