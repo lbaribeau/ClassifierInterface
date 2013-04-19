@@ -12,7 +12,6 @@
 @import "Models/Classifier.j"
 @import "Controllers/GlyphController.j"
 @import "Controllers/ClassifierController.j"
-@import "Controllers/OpenClassifiersWindowController.j"
 @import "Transformers/PngTransformer.j"
 
 
@@ -21,7 +20,6 @@
     @outlet CPWindow theWindow;
     @outlet GlyphController glyphController;
     @outlet ClassifierController classifierController;
-    @outlet OpenClassifiersWindowController openClassifiersWindowController;
 }
 - (void)awakeFromCib
 {
