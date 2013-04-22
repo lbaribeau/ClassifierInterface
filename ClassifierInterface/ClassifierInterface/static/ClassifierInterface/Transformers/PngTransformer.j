@@ -1,4 +1,3 @@
-
 @implementation PngTransformer : CPObject //See WLRemoteTransformers.j in Ratatosk
 {
 

@@ -1,15 +1,16 @@
-
 @implementation Classifier : WLRemoteObject
 {
     CPString    pk          @accessors;
     CPString    name        @accessors;
-    CPData      glyphPng    @accessors;
+    CPArray     glyphs      @accessors;
 }
 + (CPArray)remoteProperties  //Ratatosk
 {
     return [
         ['pk',          'url'],
         ['name',        'name',         nil, nil],
+        //['glyphs', 'glyphs', [[GlyphTransformer alloc] init]]
+        ['glyphs', 'glyphs', [[PngTransformer alloc] init]]
             // Will add name once serializer is working
             // Server side: implement Classifier model with a glyph_png function
             // that returns the png.  (This means that the xml file isn't an

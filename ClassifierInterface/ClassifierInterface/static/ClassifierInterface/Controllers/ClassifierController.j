@@ -19,20 +19,20 @@
 {
     [openClassifiersWindow close];
 }
+//- (@action)newClassifier:(id)aSender
+//{
+//    var classifier = [[Project alloc] init];
+//    [projectArrayController addObject:project];
+//    [project ensureCreated];    // One-shot Ratatosk call to update the server side.
+                                // (you could schedule it if you wanted but it's simpler to
+                                // do it in one line if you can.)
+//}
 - (@action)openClassifier:(id)aSender
 {
     // Read what is selected and get the glyphs of the corresponding
     // classifier.
     console.log("Thank you for asking me to open, but I can't actually do that yet.");
     [openClassifiersWindow close];
-    // I think that in order to write this function I'll need access to the
-    // GlyphController.  Maybe OpenClassifiersWindowController
-    // doesn't need to exist and all of this should be in ClassifierController.
-    // Or, maybe it needs to be given to me.
-    // Or, maybe I can return the glyphs to something that called me?
-    // But, nothing called me... except the Classifer menu.
-    // Actually, this should be merged with ClassifierController, because
-    // ClassifierController populates the Open window's list.
 }
 // Ok.  So we merged to ClassifierController because so far everything we've
 // done is for the OpenClassifiersWindow and it should all be in one
