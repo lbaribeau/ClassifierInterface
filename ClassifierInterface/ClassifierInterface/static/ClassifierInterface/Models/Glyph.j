@@ -5,7 +5,7 @@
     CPString    nRows           @accessors;
     CPString    nCols           @accessors;
     // GlyphIds    ids             @accessors;  //TODO
-    CPString    feature_scaling @accessors;
+    CPString    featureScaling  @accessors;
     CPArray     features        @accessors;
     CPData      pngData         @accessors;
 }
@@ -17,7 +17,7 @@
         ['uly', 'uly'],
         ['nRows', 'nrows'],
         ['nCols', 'ncols'],
-        ['featureScaling', 'feature_scaling']
+        ['featureScaling', 'feature_scaling'],
         ['features', 'features'],
         ['pngData', 'data']
     ];
@@ -46,7 +46,6 @@
             else
                 [self setValue:jsonObject[serverKey] forKey:objectKey];
         }
-
     }
 
     return self;
