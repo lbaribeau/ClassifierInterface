@@ -10,25 +10,24 @@
 @import <AppKit/AppKit.j>
 @import <Ratatosk/Ratatosk.j>
 @import "Models/Classifier.j"
-@import "Controllers/GlyphController.j"
 @import "Controllers/ClassifierController.j"
 @import "Transformers/PngTransformer.j"
+@import "Models/Glyph.j"
 
 
 @implementation AppController : CPObject
 {
     @outlet CPWindow theWindow;
-    @outlet GlyphController glyphController;
     @outlet ClassifierController classifierController;
 }
 - (void)awakeFromCib
 {
+    CPLogRegister(CPLogConsole);
     [theWindow setFullPlatformWindow:YES];
     [WLRemoteLink setDefaultBaseURL:@""];
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-    //[glyphController fetchGlyphs];
     [classifierController fetchClassifiers];
 }
 @end

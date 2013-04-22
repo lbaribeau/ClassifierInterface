@@ -9,5 +9,11 @@ class ClassifierSerializer(serializers.HyperlinkedModelSerializer):
         model = Classifier
         fields = ("url", "name", "glyphs")
 
+
+class ClassifierListSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Classifier
+        fields = ("url", "name")
+
 #class PngSerializer(serializers.HyperlinkedM
 # Hmm... going simpler instead.  I don't really need a model nor a serializer right now.

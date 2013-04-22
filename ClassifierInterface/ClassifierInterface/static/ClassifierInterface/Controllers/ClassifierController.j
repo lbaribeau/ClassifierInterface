@@ -6,6 +6,9 @@
     @outlet CPButton cancelButton;
     @outlet CPButton openButton;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
+    @outlet OpenClassifierDelegate  openClassifierDelegate;
+    @outlet CPArrayController   classifierArrayController;
+    @outlet CPArrayController   classifierGlyphArrayController;
 }
 - (void)awakeFromCib
 // applicationDidFinishLaunching didn't get called
@@ -31,35 +34,23 @@
 {
     // Read what is selected and get the glyphs of the corresponding
     // classifier.
-    console.log("Thank you for asking me to open, but I can't actually do that yet.");
+    var openClassifier = [[classifierArrayController selectedObjects] objectAtIndex:0];
     [openClassifiersWindow close];
-}
-// Ok.  So we merged to ClassifierController because so far everything we've
-// done is for the OpenClassifiersWindow and it should all be in one
-// controller.  Maybe 'New' and 'Save' will use the same controller...
-// but maybe ClassifierController will have to be renamed to OpenClassifiers
-// controller and 'new' and 'save' will get their own controllers.  I prefer
-// the former option.
 
+    [WLRemoteAction schedule:WLRemoteActionGetType
+                    path:[openClassifier pk]
+                    delegate:openClassifierDelegate
+                    message:@"loading a single classifier"];
+}
 - (void)fetchClassifiers
 {
     [WLRemoteAction schedule:WLRemoteActionGetType
                     path:'/classifiers/'
                     delegate:loadClassifiersDelegate
                     message:"Loading classifier from home"];
-    // Using self as the delegate would be cleaner but I may in the future
-    // have to send more requests so I may as well keep this delegate class
-    // and may need to repeat the pattern in the future.
-    // But, isn't another kind of request a good excuse for a diffierent
-    // controller?  Or should glyphController be merged with this one?
-    // Unless getGlyphs is put into the serverside model, I may as well
-    // keep glyphs (along with all the other XML) separate from the classifier
-    // model.  Now, in Rodan, only ProjectController and WorkflowController
-    // don't use self as the delegate, and both of those use self for one
-    // call and a delegate for the next.
-    // So... well... I'll just leave that delegate for now.
 }
 @end
+
 
 @implementation LoadClassifiersDelegate : CPObject
 {
@@ -70,5 +61,35 @@
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController addObjects:classifiers];
+    console.log([classifierArrayController contentArray]);
 }
+@end
+
+
+@implementation OpenClassifierDelegate : CPObject
+{
+    Classifier      theClassifier;
+    @outlet         CPArrayController       classifierGlyphArrayController;
+    @outlet         CPTableView             classifierGlyphTableView;
+}
+
+
+- (void)remoteActionDidFinish:(WLRemoteAction)anAction
+{
+    theClassifier = [[Classifier alloc] initWithJson:[anAction result]];
+
+    console.log(theClassifier);
+
+    [classifierGlyphArrayController bind:@"contentArray"
+                                    toObject:theClassifier
+                                    withKeyPath:@"glyphs"
+                                    options:nil];
+
+    // If I didn't want to do the link in XCode...
+    //[classifierGlyphTableView bind:@"content"
+    //                          toObject:classifierGlyphArrayController
+    //                          withKeyPath:@""]
+
+}
+
 @end
