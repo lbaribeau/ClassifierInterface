@@ -61,7 +61,8 @@
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController addObjects:classifiers];
-    console.log([classifierArrayController contentArray]);
+        // I get a warning for the previous line, not sure why...
+        // ends up in CPURLConnection.j
 }
 @end
 
@@ -78,6 +79,7 @@
 {
     theClassifier = [[Classifier alloc] initWithJson:[anAction result]];
 
+    console.log("THE CLASSIFIER!");
     console.log(theClassifier);
 
     [classifierGlyphArrayController bind:@"contentArray"

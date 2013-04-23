@@ -5,6 +5,9 @@
     CPString    nRows           @accessors;
     CPString    nCols           @accessors;
     // GlyphIds    ids             @accessors;  //TODO
+    CPString    idState         @accessors;
+    CPString    idName          @accessors;
+    CPString    idConfidence    @accessors;
     CPString    featureScaling  @accessors;
     CPArray     features        @accessors;
     CPData      pngData         @accessors;
@@ -17,6 +20,9 @@
         ['uly', 'uly'],
         ['nRows', 'nrows'],
         ['nCols', 'ncols'],
+        ['idState', 'id_state'],
+        ['idName', 'id_name'],
+        ['idConfidence', 'id_confidence'],
         ['featureScaling', 'feature_scaling'],
         ['features', 'features'],
         ['pngData', 'data']
