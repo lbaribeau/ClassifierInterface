@@ -15,13 +15,34 @@
     return [Glyph class];
 }
 
-- (id)transformedValue:(CPArray)arrayOfGlyphs
+- (CPArray)transformedValue:(CPArray)JsonArrayOfGlyphs
 {
-    return [Glyph objectsFromJson:arrayOfGlyphs];
+    var output = [Glyph objectsFromJson:JsonArrayOfGlyphs];
+    console.log("Transformer input:");
+    console.log(JsonArrayOfGlyphs);
+    console.log(output);
+    return output;
 }
 
-- (id)reverseTransformedValue:(id)values
+- (id)reverseTransformedValue:(CPArray)glyphs
 {
+    // Print JSON given an array of Glyphs
+    /*
+    var i = 0,
+        count = [glyphs count],
+        outArray = [];
+
+    for (; i < count; ++i)
+    {
+        var JsonObject;
+        if([glyphs objectAtIndex:i])
+         = [[glyphs objectAtIndex:i] copy]
+        var JsonObject = [glyphs objectAtIndex:i];
+        [JsonObject pngData
+
+    }*/
+    return [Glyph objectsToJson:glyphs];
+
 }
 
 @end

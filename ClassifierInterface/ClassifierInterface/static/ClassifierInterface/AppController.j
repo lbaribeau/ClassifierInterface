@@ -22,7 +22,7 @@
 }
 - (void)awakeFromCib
 {
-    CPLogRegister(CPLogConsole);
+    CPLogRegister(CPLogConsole);  // Adds stack trace info???
     [theWindow setFullPlatformWindow:YES];
     [WLRemoteLink setDefaultBaseURL:@""];
 }

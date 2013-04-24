@@ -1,35 +1,44 @@
 @import "../Models/Classifier.j"
+@import "../Transformers/GlyphTransformer.j"  // (Debugging)
 
 @implementation ClassifierController : CPObject
 {
     @outlet CPWindow openClassifiersWindow;
-    @outlet CPButton cancelButton;
+    @outlet CPButton cancelOpenButton;
     @outlet CPButton openButton;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
     @outlet OpenClassifierDelegate  openClassifierDelegate;
     @outlet CPArrayController   classifierArrayController;
-    @outlet CPArrayController   classifierGlyphArrayController;
+    @outlet CPWindow newClassifierWindow;
+    @outlet CPButton cancelNewButton;
+    @outlet CPButton createClassifierButton;
 }
 - (void)awakeFromCib
 // applicationDidFinishLaunching didn't get called
 {
-    [cancelButton setAction:@selector(closeWindow:)];
-    [cancelButton setTarget:self];
+    //[cancelOpenButton setAction:@selector(closeOpenWindow:)];
+    [cancelOpenButton setAction:@selector(close)];
+    [cancelOpenButton setTarget:openClassifiersWindow];
     [openButton setAction:@selector(openClassifier:)];
     [openButton setTarget:self];
-}
-- (@action)closeWindow:(id)aSender
-{
-    [openClassifiersWindow close];
+    [cancelNewButton setAction:@selector(close)];
+    [cancelNewButton setTarget:newClassifierWindow];
 }
 //- (@action)newClassifier:(id)aSender
 //{
-//    var classifier = [[Project alloc] init];
+//    var classifier = [[Classifier alloc] init];
 //    [projectArrayController addObject:project];
 //    [project ensureCreated];    // One-shot Ratatosk call to update the server side.
-                                // (you could schedule it if you wanted but it's simpler to
-                                // do it in one line if you can.)
+                                // (you could schedule it if you wanted but it's simpler
+                                // to do it in one line if you can.)
 //}
+- (void)fetchClassifiers
+{
+    [WLRemoteAction schedule:WLRemoteActionGetType
+                    path:'/classifiers/'
+                    delegate:loadClassifiersDelegate
+                    message:"Loading classifier list"];
+}
 - (@action)openClassifier:(id)aSender
 {
     // Read what is selected and get the glyphs of the corresponding
@@ -41,13 +50,8 @@
                     path:[openClassifier pk]
                     delegate:openClassifierDelegate
                     message:@"loading a single classifier"];
-}
-- (void)fetchClassifiers
-{
-    [WLRemoteAction schedule:WLRemoteActionGetType
-                    path:'/classifiers/'
-                    delegate:loadClassifiersDelegate
-                    message:"Loading classifier from home"];
+
+    // TODO: make this function available by double clicking in the open window
 }
 @end
 
@@ -91,6 +95,9 @@
     //[classifierGlyphTableView bind:@"content"
     //                          toObject:classifierGlyphArrayController
     //                          withKeyPath:@""]
+
+    console.log("Calling new transformer function");
+    [[GlyphTransformer alloc] reverseTransformedValue:[theClassifier glyphs]];
 
 }
 
