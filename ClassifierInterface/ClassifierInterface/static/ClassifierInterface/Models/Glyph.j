@@ -76,102 +76,30 @@
 
     return outArray;
 }
+
 + (CPArray)objectsToJson:(CPArray)aGlyphArray
 {
     var outArray = [],
         map = [Glyph glyphProperties];
-
     for (var i = 0; i < [aGlyphArray count]; ++i)
     {
-        //var JsonGlyph = {
-        //    ""
-        // Will do it in a loop in order to dynamically add the properties
-        // according to the contents of glyphProperties
-
-        //var JsonObject = [[CPObject alloc] init];
         var JsonObject = new Object();
+        // Dynamically add properties to the object using the server names
         for (var j = 0; j < [map count]; ++j)
         {
             var objectKey = map[j][0],
                 serverKey = map[j][1];
-
             if (serverKey !== 'data')
             {
-                console.log('Not data');
-                // [JsonObject setValue:aGlyphArray[i][objectKey] forKey:serverKey];
                 JsonObject[serverKey] = aGlyphArray[i][objectKey];
-                    // Dynamically add properties to the object
             }
             else
             {
-                console.log("data.");
-//                console.log("Test out reverse transformer for data: print input and output.");
-//                console.log(aGlyphArray[i][objectKey]);
-//                console.log([aGlyphArray[i][objectKey] base64]);  // successful reverse-convert of base64 data
-//                console.log("Leaving objectsToJson");
-                // [JsonObject setValue:[aGlyphArray[i][objectKey] base64] forKey:serverKey];
-                    // Not key value coding-compliant
-                // JsonObject[serverKey] = [aGlyphArray[i][objectKey] base64];  // Not sure why data comes out as a CFMutableData
-                // JsonObject['data'] = 'Hello!';
                 JsonObject[serverKey] = [aGlyphArray[i][objectKey] base64];
             }
         }
         [outArray addObject:JsonObject];
     }
-    console.log(outArray);
     return outArray;
 }
 @end
-
-/*
-+ (CPArray)objectsToJson:(CPArray)aGlyphArray
-{
-
-    var outArray = [],
-        map = [Glyph glyphProperties];
-
-    for (var i = 0; i < [aGlyphArray count]; ++i)
-    {
-        var JsonObject = [[CPObject alloc] init];
-        console.log("i is " + i);
-        for (var j = 0; j < [map count]; ++j)
-        {
-            var objectKey = map[j][0],
-                serverKey = map[j][1];
-            console.log("j is " + j);
-
-            if (map[j][1] === 'data')
-            {
-                console.log("map[j][1] better be data:" + map[j][1]);
-                console.log("Try to print the same stuff over here");
-                console.log(aGlyphArray[i]);  //Glyph object
-                console.log(aGlyphArray[i][objectKey]);  // 471
-                console.log(aGlyphArray[i]['pngData']);  // CFMutable
-                //debugger;
-                // console.log([aGlyphArray[i][objectKey] _base64]);  //null
-                // console.log([CPData base64:aGlyphArray[i][objectKey]]);  // not a class method
-                // console.log([CPData dataWithString:aGlyphArray[i][objectKey]]);
-                // console.log([aGlyphArray[i][objectKey] base64]);  // Why doesn't this link?
-                console.log([aGlyphArray[i][objectKey] base64]);  // unrecognized selector
-                console.log("Leaving objectsToJson");
-                [JsonObject setValue:[aGlyphArray[i][objectKey] base64] forKey:serverKey];
-            }
-            else
-                console.log("Pass");
-                [JsonObject setValue:aGlyphArray[i][objectKey] forKey:serverKey];
-
-            //console.log(objectKey);
-            //console.log(serverKey);
-            //console.log(aGlyphArray[i][objectKey]);
-            //[JsonObject setValue:aGlyphArray[i][objectKey] forKey:serverKey];
-                // Data probably won't get set properly.
-                // Hmmm... do I need to make a new class to write the reverse
-                // transformer?  Maybe a toString on the Glyph object would be
-                // much better
-
-        }
-        [outArray addObject:JsonObject];
-    }
-    console.log(outArray);
-}
-*/

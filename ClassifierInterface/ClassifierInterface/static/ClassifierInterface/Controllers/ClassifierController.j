@@ -1,5 +1,4 @@
 @import "../Models/Classifier.j"
-@import "../Transformers/GlyphTransformer.j"  // (Debugging)
 
 @implementation ClassifierController : CPObject
 {
@@ -74,8 +73,10 @@
 @implementation OpenClassifierDelegate : CPObject
 {
     Classifier      theClassifier;
+    CPArray         itemList;
     @outlet         CPArrayController       classifierGlyphArrayController;
-    @outlet         CPTableView             classifierGlyphTableView;
+    //@outlet         CPTableView             classifierGlyphTableView;
+    @outlet CPCollectionView cv;
 }
 
 
@@ -86,19 +87,108 @@
     console.log("THE CLASSIFIER!");
     console.log(theClassifier);
 
-    [classifierGlyphArrayController bind:@"contentArray"
-                                    toObject:theClassifier
-                                    withKeyPath:@"glyphs"
-                                    options:nil];
+    //[classifierGlyphArrayController bind:@"contentArray"
+    //                                toObject:theClassifier
+    //                                withKeyPath:@"glyphs"
+    //                                options:nil];
 
     // If I didn't want to do the link in XCode...
     //[classifierGlyphTableView bind:@"content"
     //                          toObject:classifierGlyphArrayController
     //                          withKeyPath:@""]
 
-    console.log("Calling new transformer function");
-    [[GlyphTransformer alloc] reverseTransformedValue:[theClassifier glyphs]];
+/*
+    console.log("CollectionView:");
+    console.log(cv);
+    console.log("Image data");
+    console.log([cv itemPrototype]);
+    console.log([[cv itemPrototype] view]);
+    console.log([[[cv itemPrototype] view] image]);  // good selector, returns null
+    // console.log([[[cv itemPrototype] view] representedObject]);  bad selector
+    //console.log([[[cv itemPrototype] view] data]);  // No CPImageView data
+    // console.log([[[cv itemPrototype] view] view]);  // No CPImageView view
+    console.log([[[[cv itemPrototype] view] image] data]);  // null null
+*/
+    // Try copying Brian... forget about the XCode way
+    //[cv setContent:[theClassifier glyphs]];  // This doesn't change much, content is already set well.
+    // Try making a copy of the glyphs
 
+    itemList = [];
+
+    //Prepare CPCollectionView
+    [cv setAutoresizingMask:CPViewWidthSizable];
+    [cv setMinItemSize:CGSizeMake(100, 100)];
+    [cv setMaxItemSize:CGSizeMake(100, 100)];
+    [cv setDelegate:self];
+    [cv setSelectable:YES];
+
+    var itemPrototype = [[CPCollectionViewItem alloc] init];
+    [itemPrototype setView:[[PhotoView alloc] initWithFrame:CGRectMakeZero()]];
+    [cv setItemPrototype:itemPrototype];
+
+
+    var theClassifierGlyphs = [theClassifier glyphs];
+    for (var i = 0; i < theClassifierGlyphs.length; i++)
+    {
+        var glyphImageData = [theClassifierGlyphs[i] pngData];
+        var glyphImage = [[CPImage alloc] initWithData:glyphImageData];
+        itemList[i] = glyphImage;
+        // itemList[i] = [[CPImage alloc] initWithData:[[theClassifier glyphs][i] pngData]];
+    }
+    //console.log("out");
+    [cv setContent:itemList];
+    console.log(cv);
+
+    /*
+    var myglyphs = [[theClassifier glyphs] copy];
+    [cv setContent:myglyphs];
+    console.log(cv);
+
+    var item = [cv itemPrototype];
+    // var myview = [item view];
+    // var myimage = [myview image];
+
+    // var myitemprototype = [[CPCollectionViewItem alloc] init];
+
+    [item setView:[[PhotoView alloc] initWithFrame:CGRectMakeZero()]];;
+        // Since I'm making a View here I can delete the view from Xcode.
+        // However I'll keep the item prototype initialization in XCode for now.
+    // [cv setItemPrototype:myitemprototype];
+*/
+
+
+
+}
+
+@end
+
+@implementation PhotoView : CPImageView
+{
+    CPImageView _imageView;
+}
+
+- (void)setSelected:(BOOL)isSelected
+{
+    [self setBackgroundColor:isSelected ? [CPColor grayColor] : nil];
+}
+
+- (void)setRepresentedObject:(id)anObject
+{
+    console.log("Yay setRepresented is getting called with...");
+    console.log(anObject);
+    if (!_imageView)
+    {
+        var frame = CGRectInset([self bounds], 5.0, 5.0);
+
+        _imageView = [[CPImageView alloc] initWithFrame:frame];
+
+        [_imageView setImageScaling:CPScaleProportionally];
+        [_imageView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
+
+        [self addSubview:_imageView];
+    }
+
+    [_imageView setImage:anObject];
 }
 
 @end
