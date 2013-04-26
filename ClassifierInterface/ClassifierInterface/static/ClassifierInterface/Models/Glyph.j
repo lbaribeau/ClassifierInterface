@@ -102,4 +102,19 @@
     }
     return outArray;
 }
+
+- (void)writeSymbolName:(CPString)newName
+/* This function is intended to be called by the text box that allows the user to
+write the symbol name of a glyph.  It updates the glyph with the new info:
+    idState -> "MANUAL"
+    idName ->  newName
+    idConfidence -> "1.000000"
+This won't write to the server until they hit Save.
+*/
+{
+    idState = @"MANUAL";
+    idName = newName;
+    idConfidence = @"1.000000";
+}
+
 @end

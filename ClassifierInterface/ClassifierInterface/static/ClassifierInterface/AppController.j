@@ -19,6 +19,8 @@
 {
     @outlet CPWindow theWindow;
     @outlet ClassifierController classifierController;
+    @outlet     CPTextField       symbolNameEntry;
+
 }
 - (void)awakeFromCib
 {
@@ -28,6 +30,7 @@
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-    [classifierController fetchClassifiers];
+    [classifierController fetchClassifiers];    // Maybe the Open menu command should call this?
+                                                // It would just make things slower to do that.
 }
 @end
