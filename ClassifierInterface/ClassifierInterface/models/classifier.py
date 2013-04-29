@@ -49,8 +49,7 @@ class Classifier(models.Model):
         glyphs = []
 
         for glyph in classifier.xpath("//glyph"):
-            # Should I type these?
-            # Keep them as strings, they'll just need to be
+            # Keep values as strings, they'll just need to be
             # displayed anyway.
 
             # TODO: This only works if all of the fields are in the
@@ -76,7 +75,7 @@ class Classifier(models.Model):
                 'id_state': ids.get('state'),
                 'id_name': id_element.get('name'),
                 'id_confidence': id_element.get('confidence'),
-                'data': self._base64_encode(glyph),
+                'data': self._base64_png_encode(glyph),
                 'feature_scaling': features.get('scaling'),
                 'features': [{
                     'name': f.get('name'),
@@ -87,7 +86,47 @@ class Classifier(models.Model):
             glyphs.append(glyph_dict)
         return glyphs
 
-    def _base64_encode(self, glyph):
+    def write_xml(self, classifier_glyphs):
+        """ Intended to receive a PUT containing a Glyph in JSON.
+        Writes XML.  Assume that I have a whole classifier (array of
+        glyph dictionaries) object as defined in the footnote. """
+        #write(r'<xml version="1.0" encoding="utf-8"?>')
+        #classifier_glyphs_dict = dict(classifier_glyphs_str)
+        #classifier_glyphs_dict
+        gamera_database = etree.XML(r'<gamera-database version="2.0" />')  # Maybe this'll give the header too
+        glyphs_element = etree.SubElement(gamera_database, "glyphs")
+        for json_glyph in classifier_glyphs:
+            glyph_element = etree.SubElement(glyphs_element, "glyph",
+                                             uly=json_glyph['uly'],
+                                             ulx=json_glyph['ulx'],
+                                             nrows=json_glyph['nrows'],
+                                             ncols=json_glyph['ncols'])
+            ids_element = etree.SubElement(glyph_element, "ids",
+                                           state=json_glyph['id_state'])
+            etree.SubElement(ids_element, "id",
+                             name=json_glyph['id_name'],
+                             confidence=json_glyph['id_confidence'])
+            data_element = etree.SubElement(glyph_element, "data")
+            data_element.text = self._runlength_encode(json_glyph['data'])
+            features_element = etree.SubElement(glyph_element, "features",
+                                                scaling=json_glyph['feature_scaling'])
+            for feature in json_glyph['features']:
+                f_element = etree.SubElement(features_element, "feature",
+                                             name=feature['name'])
+                                             #text=feature['values'])  # bad: need a string
+                                             #text=''.join([val.append(' ') for val in feature['values']]) # Not understanding how awesome join is
+                                             #text=' '.join(feature['values']) # bad: assigns an attribute called 'text'
+                f_element.text = ' '.join(feature['values'])
+        #gamera_database.write("/home/Users/lbaribeau/test/classifier_xml/1.xml")
+        #print etree.tostring(gamera_database, pretty_print=True)
+        # etree.write()
+
+        # TODO: rewrite the above using the 'with' keyword.  See lxml docs.
+        f = open(self.classifier_path, 'w')
+        f.write(etree.tostring(gamera_database, pretty_print=True))
+        return True
+
+    def _base64_png_encode(self, glyph):
         """ Takes an xpath glyph element and returns a png image of the
         glyph. """
         nrows = int(glyph.get('nrows'))
@@ -97,7 +136,7 @@ class Classifier(models.Model):
         # Method: Make a list of length nrows * ncols then after make sublists of
         # length ncols.
         pixels = []
-        white_or_black = True
+        white_or_black = True  # True is white
         for n in re.findall("\d+", glyph.find('data').text):
             pixels.extend([255 * white_or_black] * int(n))
             white_or_black = not(white_or_black)
@@ -111,6 +150,34 @@ class Classifier(models.Model):
         png_writer.write(buf, pixels_2D)
         my_png = buf.getvalue()
         return base64.b64encode(my_png)
+        # TODO: it would be nice not to have used multiplication in the loop
+
+    def _runlength_encode(self, base64_encoded_png):
+        my_png = base64.b64decode(base64_encoded_png)
+        buf = StringIO.StringIO(my_png)
+        r = png.Reader(file=buf)  # Note: it gets confused if you don't name the argument
+        r_out = r.read_flat()
+
+        runlength_array = []
+        previous_pixel = 255
+        runlength = 0
+        for pixel in r_out[2]:
+            if (pixel == previous_pixel):
+                runlength += 1
+            else:
+                runlength_array.append(runlength)
+                runlength = 1
+                previous_pixel = previous_pixel ^ 255  # Toggle between 0 and 255
+        runlength_array.append(runlength)
+        if (pixel == 255):
+            runlength_array.append(0)
+            # the last number must be the runlength of black pixels
+            # so this case adds a zero if the bottom right pixel was white
+
+        return ' '.join(map(str, runlength_array))
+        # Returns a string containing each integer separated by spaces:
+        # The 'map' call converts to an array of strings, then 'join' into one string
+
 
 
 ### GAMERA XML AS A DICTIONARY ###
@@ -191,10 +258,6 @@ class Classifier(models.Model):
 # It's just a list of names.  Very simple.
 # The symbols get saved when you save page glyphs.
 # It can honesly just be a 1d array of strings.
-
-
-
-
 
 
 

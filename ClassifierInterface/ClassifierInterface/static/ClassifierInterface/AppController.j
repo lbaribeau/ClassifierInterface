@@ -21,10 +21,15 @@
     @outlet ClassifierController classifierController;
     @outlet     CPTextField       symbolNameEntry;
 
+    CPCookie sessionID;
+    CPCookie CSRFToken;
 }
 - (void)awakeFromCib
 {
     CPLogRegister(CPLogConsole);  // Adds stack trace info???
+    sessionID = [[CPCookie alloc] initWithName:@"sessionid"];
+    CSRFToken = [[CPCookie alloc] initWithName:@"csrftoken"];
+    [[WLRemoteLink sharedRemoteLink] setDelegate:self];
     [theWindow setFullPlatformWindow:YES];
     [WLRemoteLink setDefaultBaseURL:@""];
 }
@@ -32,5 +37,16 @@
 {
     [classifierController fetchClassifiers];    // Maybe the Open menu command should call this?
                                                 // It would just make things slower to do that.
+}
+- (void)remoteLink:(WLRemoteLink)aLink willSendRequest:(CPURLRequest)aRequest withDelegate:(id)aDelegate context:(id)aContext
+{
+    switch ([[aRequest HTTPMethod] uppercaseString])
+    {
+        case "POST":
+        case "PUT":
+        case "PATCH":
+        case "DELETE":
+            [aRequest setValue:[CSRFToken value] forHTTPHeaderField:"X-CSRFToken"];
+    }
 }
 @end

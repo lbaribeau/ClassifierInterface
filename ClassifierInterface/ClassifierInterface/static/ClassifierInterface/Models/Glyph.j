@@ -80,12 +80,14 @@
 + (CPArray)objectsToJson:(CPArray)aGlyphArray
 {
     var outArray = [],
-        map = [Glyph glyphProperties];
-    for (var i = 0; i < [aGlyphArray count]; ++i)
+        aGlyphArray_count = [aGlyphArray count],
+        map = [Glyph glyphProperties],
+        map_count = [map count];
+    for (var i = 0; i < aGlyphArray_count; ++i)
     {
         var JsonObject = new Object();
         // Dynamically add properties to the object using the server names
-        for (var j = 0; j < [map count]; ++j)
+        for (var j = 0; j < map_count; ++j)
         {
             var objectKey = map[j][0],
                 serverKey = map[j][1];

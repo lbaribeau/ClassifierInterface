@@ -12,6 +12,7 @@
     @outlet CPWindow newClassifierWindow;
     @outlet CPButton createClassifierButton;
     @outlet CPButton cancelNewButton;
+    @outlet CPTextField statusLabel;
 
     @outlet     CPArrayController classifierGlyphArrayController;
     @outlet     CPCollectionView  cv;
@@ -79,12 +80,6 @@
     [self setUpCollectionView];
     console.log(cv);
     */
-/*
-    console.log(symbolNameEntry);
-    [symbolNameEntry setEditable:true];
-    [symbolNameEntry setEnabled:true];
-    [symbolNameEntry setPlaceholderString:@"Hello World"];
-    console.log([symbolNameEntry isEditable]);*/
 }
 
 
@@ -103,12 +98,30 @@
 - (@action)save:(CPMenuItem)aSender
 /* Save glyphs to xml on server */
 {
-    [WLRemoteAction schedule:WLRemoteActionPostType
-                    path:[theClassifier pk]
-                    delegate:SaveClassifierDelegate
-                    massage:@"Save classifier"];
+    if (theClassifier)
+    {
+        console.log("In save");
+        console.log(theClassifier);
+        //console.log([theClassifier pk]);
+        //[WLRemoteAction schedule:WLRemoteActionPutType
+        //                path:[theClassifier pk]
+        //                delegate:SaveClassifierDelegate
+        //                message:@"Save classifier"];
+        //[theClassifier ensureCreated];
+        // patch and ensure saved
+        // have patch contain the changed fields
+        [theClassifier makeAllDirty];
+        //[theClassifier makeDirtyProperty:@"id_name"];
+        [theClassifier ensureSaved];
+        [statusLabel setStringValue:@"Saved."];
+    }
+    else
+    {
+        // TODO: Error checking: Grey out the Save function on the menu until something
+        // is open.
+        [statusLabel setStringValue:@"Save failed: There is no open file."];
+    }
 }
-
 
 - (void)setUpCollectionView
 /* This function isn't currently being used as I am going with a table view for now */
@@ -161,7 +174,6 @@
         // ends up in CPURLConnection.j
 }
 @end
-
 /*
 @implementation OpenClassifierDelegate : CPObject
 {
@@ -172,17 +184,17 @@
 {
     [classifierController openActionDidFinish:anAction];
 }
-@end*/
-
+@end
+*/
 @implementation SaveClassifierDelegate : CPObject
 {
-    @outlet     CPTextField statusLabel;
+    @outlet     ClassifierController classifierController;
 }
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
     // What does the response look like?
     // TODO: write some kind of validation or the response here.
-    [statusLabel setStringValue:@"Saved."];
+    [classifierController saveActionDidFinish:anAction];
 }
 @end
 
