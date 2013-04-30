@@ -12,13 +12,6 @@ import StringIO
 import base64
 
 
-#class Glyph(object):
-#    """ A database-less model class for glyphs """
-#    def __init__(self, **kwargs):
-#        self.__dict__.update(kwargs)
-# output_glyph = Glyph(**glyph_dict)
-
-
 class Classifier(models.Model):
     uuid = UUIDField(primary_key=True, auto=True)
     name = models.CharField(max_length=255)
@@ -136,10 +129,10 @@ class Classifier(models.Model):
         # Method: Make a list of length nrows * ncols then after make sublists of
         # length ncols.
         pixels = []
-        white_or_black = True  # True is white
+        white_or_black = 255  # 255 is white
         for n in re.findall("\d+", glyph.find('data').text):
-            pixels.extend([255 * white_or_black] * int(n))
-            white_or_black = not(white_or_black)
+            pixels.extend([white_or_black] * int(n))
+            white_or_black = white_or_black ^ 255  # Toggle between 0 and 255
         png_writer = png.Writer(width=ncols, height=nrows, greyscale=True)
         pixels_2D = []
         for i in xrange(nrows):
@@ -148,9 +141,7 @@ class Classifier(models.Model):
         # (pypng expects a file descriptor)
         buf = StringIO.StringIO()
         png_writer.write(buf, pixels_2D)
-        my_png = buf.getvalue()
-        return base64.b64encode(my_png)
-        # TODO: it would be nice not to have used multiplication in the loop
+        return base64.b64encode(buf.getvalue())
 
     def _runlength_encode(self, base64_encoded_png):
         my_png = base64.b64decode(base64_encoded_png)

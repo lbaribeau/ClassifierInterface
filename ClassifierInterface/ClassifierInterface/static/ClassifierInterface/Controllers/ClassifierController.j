@@ -2,7 +2,7 @@
 
 @implementation ClassifierController : CPObject
 {
-    Classifier        theClassifier;
+    Classifier        theClassifier;  // Initialized by Open
     @outlet CPWindow openClassifiersWindow;
     @outlet CPButton openButton;
     @outlet CPButton cancelOpenButton;
@@ -12,6 +12,7 @@
     @outlet CPWindow newClassifierWindow;
     @outlet CPButton createClassifierButton;
     @outlet CPButton cancelNewButton;
+    @outlet CPTextField newClassifierTextbox;
     @outlet CPTextField statusLabel;
 
     @outlet     CPArrayController classifierGlyphArrayController;
@@ -44,7 +45,76 @@
                     delegate:loadClassifiersDelegate
                     message:"Loading classifier list"];
 }
-
+- (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
+{
+    var classifiers = [Classifier objectsFromJson:[anAction result]];
+    [classifierArrayController addObjects:classifiers];
+        // I get a warning for the previous line, not sure why...
+        // ends up in CPURLConnection.j
+    // Set up initial text inside the 'New' window
+}
+- (@action)new:(CPMenuItem)aSender
+{
+    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
+    [newClassifierWindow makeKeyAndOrderFront:aSender];
+}
+- (CPString)suggestNameForNewClassifier
+/* Comes up with a suggestion for the user to name the new classifier.
+Default suggestion is classifier0. */
+{
+    // Pull out all classifiers with names like 'classifierN'
+    // Sort that list, then determine a default name to give to the user.
+    // This needs regexes
+    var classifiers = [classifierArrayController arrangedObjects],
+        classifiersCount = [classifiers count],
+        // default_name = /classifier\d/,  // Only required if we're sorting
+        classifierNames = [];
+        // list_of_used_defaults = new Array();
+    /* Actually, don't bother sorting because it doesn't help...
+    classifer5 existing doesn't mean that classifier 4 exists.
+    for (; i < classifiers_count; ++i)
+    {
+        if (str.match([classifiers[i] name], default_name)
+        {
+            list_of_used_defaults.push([classifiers[i] name]);
+        }
+    }
+    list_of_used_defaults*/
+    for (var i = 0; i < classifiersCount; ++i)
+    {
+        classifierNames[i] = [classifiers[i] name];
+    }
+    for (var i = 0; i < classifiersCount; ++i)
+    {
+        //var suggestion = @"classifier" + [CPString alloc:i];
+        var suggestion = [[CPString alloc] initWithFormat:@"classifier%d", i];
+        if (! [self arrayContains:classifierNames :suggestion])
+        {
+            return suggestion;
+        }
+    }
+    return @"classifier" + CPString(classifiersCount)
+}
+- arrayContains:(CPArray)array:(CPString)string
+/* Looks for a string in an array and returns true if it finds it */
+{
+    var i = 0,
+        array_count = [array count];
+    for (; i < array_count; ++i)
+    {
+        if (array[i] === string)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+- (@action)createClassifier:(id)aSender
+{
+    // This is for the create button in the New Classifier window.
+    // Check the user's classifier name then create.
+    var new_name = [newClassifierTextbox objectValue];
+}
 - (@action)openClassifier:(id)aSender
 {
     // Read what is selected and get the glyphs of the corresponding
@@ -163,15 +233,12 @@
 
 @implementation LoadClassifiersDelegate : CPObject
 {
-    @outlet ClassifierArrayController classifierArrayController;
+    @outlet ClassifierController classifierController;
 }
 
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
-    var classifiers = [Classifier objectsFromJson:[anAction result]];
-    [classifierArrayController addObjects:classifiers];
-        // I get a warning for the previous line, not sure why...
-        // ends up in CPURLConnection.j
+    [classifierController fetchClassifiersDidFinish:anAction];
 }
 @end
 /*

@@ -46,7 +46,7 @@
             var objectKey = map[i][0],
                 serverKey = map[i][1];
 
-            if (map[i][1] === 'data')
+            if (serverKey === 'data')
             {
                 [self setValue:[CPData dataWithBase64:jsonObject[serverKey]] forKey:objectKey];
 
@@ -55,7 +55,9 @@
                 //console.log([CPData dataWithBase64:jsonObject[serverKey]]);  // decoded Json
             }
             else
+            {
                 [self setValue:jsonObject[serverKey] forKey:objectKey];
+            }
         }
     }
 
