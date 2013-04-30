@@ -6,6 +6,14 @@
     CPString    name        @accessors;
     CPArray     glyphs      @accessors;
 }
+- (id)init:(CPString)aName
+{
+    if (self = [super init])
+    {
+        [self setName:aName];
+    }
+    return self;
+}
 + (CPArray)remoteProperties  //Ratatosk
 {
     return [
@@ -21,4 +29,5 @@
     else
         return @"/classifiers/";
 }
+
 @end

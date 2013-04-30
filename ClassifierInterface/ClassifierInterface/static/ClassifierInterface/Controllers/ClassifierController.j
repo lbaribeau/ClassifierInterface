@@ -3,16 +3,14 @@
 @implementation ClassifierController : CPObject
 {
     Classifier        theClassifier;  // Initialized by Open
+    //CPArray classifierNames @accessors;  // Convenient array to have around
     @outlet CPWindow openClassifiersWindow;
-    @outlet CPButton openButton;
-    @outlet CPButton cancelOpenButton;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
     @outlet SaveClassifierDelegate  saveClassifierDelegate;
     @outlet CPArrayController   classifierArrayController;
     @outlet CPWindow newClassifierWindow;
-    @outlet CPButton createClassifierButton;
-    @outlet CPButton cancelNewButton;
     @outlet CPTextField newClassifierTextbox;
+    @outlet CPTextField nameUsedLabel;  // TODO: implement red text when user enters a used name
     @outlet CPTextField statusLabel;
 
     @outlet     CPArrayController classifierGlyphArrayController;
@@ -20,24 +18,14 @@
                 CPArray           imageList;
 }
 - (void)awakeFromCib
-// applicationDidFinishLaunching didn't get called
+// applicationDidFinishLaunching didn't get called... weird
 {
-    //[cancelOpenButton setAction:@selector(closeOpenWindow:)];
-    [cancelOpenButton setAction:@selector(close)];
-    [cancelOpenButton setTarget:openClassifiersWindow];
-    [openButton setAction:@selector(openClassifier:)];
-    [openButton setTarget:self];
-    [cancelNewButton setAction:@selector(close)];
-    [cancelNewButton setTarget:newClassifierWindow];
+    // I used to set up actions of all of the buttons here, but then
+    // I figured out how to do it in XCode:
+    //  cancel buttons send an action to the windows' close function
+    //  other buttons connect to classifierController functions.
+    // I do the above two things in XCode now instead of here.
 }
-//- (@action)newClassifier:(id)aSender
-//{
-//    var classifier = [[Classifier alloc] init];
-//    [projectArrayController addObject:project];
-//    [project ensureCreated];    // One-shot Ratatosk call to update the server side.
-                                // (you could schedule it if you wanted but it's simpler
-                                // to do it in one line if you can.)
-//}
 - (void)fetchClassifiers
 {
     [WLRemoteAction schedule:WLRemoteActionGetType
@@ -51,69 +39,83 @@
     [classifierArrayController addObjects:classifiers];
         // I get a warning for the previous line, not sure why...
         // ends up in CPURLConnection.j
-    // Set up initial text inside the 'New' window
+    //[self classifierNames] = new CPArray();
+    //[self setClassifierNames:new CPArray()];
+    /*[self setClassifierNames:[]];
+    for (var i = 0, classifiersCount = [classifiers count]; i < classifiersCount; ++i)
+    {
+        classifierNames[i] = [classifiers[i] name];
+    }*/
 }
 - (@action)new:(CPMenuItem)aSender
 {
+    // TODO: consider displaying the classifier list in the New window.
+    // (It might help the user to choose a name.)
     [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
     [newClassifierWindow makeKeyAndOrderFront:aSender];
 }
 - (CPString)suggestNameForNewClassifier
 /* Comes up with a suggestion for the user to name the new classifier.
-Default suggestion is classifier0. */
+Default suggestion is classifier0.
+Expects fetchClassifiers to have been called.*/
 {
-    // Pull out all classifiers with names like 'classifierN'
-    // Sort that list, then determine a default name to give to the user.
-    // This needs regexes
-    var classifiers = [classifierArrayController arrangedObjects],
-        classifiersCount = [classifiers count],
-        // default_name = /classifier\d/,  // Only required if we're sorting
-        classifierNames = [];
-        // list_of_used_defaults = new Array();
-    /* Actually, don't bother sorting because it doesn't help...
-    classifer5 existing doesn't mean that classifier 4 exists.
-    for (; i < classifiers_count; ++i)
+    var i = 0,
+        classifierCount = [[classifierArrayController arrangedObjects] count];
+    //for (var i = 0, classifiersCount = [[self classifierNames] count]; i < classifiersCount; ++i)
+    for (; i < classifierCount; ++i)
     {
-        if (str.match([classifiers[i] name], default_name)
-        {
-            list_of_used_defaults.push([classifiers[i] name]);
-        }
-    }
-    list_of_used_defaults*/
-    for (var i = 0; i < classifiersCount; ++i)
-    {
-        classifierNames[i] = [classifiers[i] name];
-    }
-    for (var i = 0; i < classifiersCount; ++i)
-    {
-        //var suggestion = @"classifier" + [CPString alloc:i];
         var suggestion = [[CPString alloc] initWithFormat:@"classifier%d", i];
-        if (! [self arrayContains:classifierNames :suggestion])
+        if (! [self classifierExists:suggestion])
         {
             return suggestion;
         }
     }
-    return @"classifier" + CPString(classifiersCount)
+    return @"classifier" + CPString(classifierCount);
 }
-- arrayContains:(CPArray)array:(CPString)string
-/* Looks for a string in an array and returns true if it finds it */
+- (Boolean)classifierExists:(CPString)classifierName
+/* Tells you if we have a classifier with the given name.
+Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     var i = 0,
-        array_count = [array count];
-    for (; i < array_count; ++i)
+        //namesCount = [[self classifierNames] count];
+        classifierArray = [classifierArrayController arrangedObjects],
+        classifierCount = [classifierArray count];
+    for (; i < classifierCount; ++i)
     {
-        if (array[i] === string)
+        //if (classifierNames[i] === classifierName)
+        if (classifierName === [classifierArray[i] name])
         {
             return true;
         }
     }
     return false;
 }
+- (@action)newClassifierTextboxKeyDown:(id)aSender
+{
+    // TODO: Red text when name is already in use.
+    console.log("newClassifierTextboxKeyDown");
+}
 - (@action)createClassifier:(id)aSender
 {
     // This is for the create button in the New Classifier window.
     // Check the user's classifier name then create.
-    var new_name = [newClassifierTextbox objectValue];
+    // TODO: Enter button from the textbox must call this function
+    var newName = [newClassifierTextbox objectValue];
+    if (! [self classifierExists:newName])
+    {
+        var classifier = [[Classifier alloc] init:newName];
+        [classifierArrayController addObject:classifier];
+        [classifier ensureCreated];
+        [newClassifierWindow close];
+    }
+    else
+    {
+        // Do nothing!
+        // TODO: Ensure that the label that writes in red, "Name already in use!"
+        // hides/shows when the text box contains unused/used classifier names
+        // (Then it will make sense for the 'Create' button to simply not respond)
+    }
+
 }
 - (@action)openClassifier:(id)aSender
 {
