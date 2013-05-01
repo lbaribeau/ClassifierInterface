@@ -35,8 +35,7 @@
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-    [classifierController fetchClassifiers];    // Maybe the Open menu command should call this?
-                                                // It would just make things slower to do that.
+
 }
 - (void)remoteLink:(WLRemoteLink)aLink willSendRequest:(CPURLRequest)aRequest withDelegate:(id)aDelegate context:(id)aContext
 {

@@ -93,9 +93,7 @@ class Classifier(models.Model):
         """ Intended to receive a PUT containing a Glyph in JSON.
         Writes XML.  Assume that I have a whole classifier (array of
         glyph dictionaries) object as defined in the footnote. """
-        #write(r'<xml version="1.0" encoding="utf-8"?>')
-        #classifier_glyphs_dict = dict(classifier_glyphs_str)
-        #classifier_glyphs_dict
+
         gamera_database = etree.XML(r'<gamera-database version="2.0" />')
         glyphs_element = etree.SubElement(gamera_database, "glyphs")
         for json_glyph in classifier_glyphs:
@@ -120,10 +118,6 @@ class Classifier(models.Model):
                                              #text=''.join([val.append(' ') for val in feature['values']]) # Not understanding how awesome join is
                                              #text=' '.join(feature['values']) # bad: assigns an attribute called 'text'
                 f_element.text = ' '.join(feature['values'])
-        #gamera_database.write("/home/Users/lbaribeau/test/classifier_xml/1.xml")
-        #print etree.tostring(gamera_database, pretty_print=True)
-        # etree.write()
-
         f = open(self.classifier_path, 'w')
         f.write(etree.tostring(gamera_database, pretty_print=True, xml_declaration=True, encoding="utf-8"))
         return True

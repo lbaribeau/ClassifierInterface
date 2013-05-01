@@ -22,16 +22,6 @@ class ClassifierList(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)  # TODO: change
     serializer_class = ClassifierListSerializer
 
-    # def post(self, request, *args, **kwargs):
-    #     response = self.create(request, *args, **kwargs)
-
-    #     # self.create is the regular django rest task for creating the model,
-    #     # but in addition to the database we must maintain the XML
-    #     # See how self.object gets defined in CreateModelMixin
-    #     self.object.new_xml()
-
-    #     return response
-
 
 @receiver(post_save, sender=Classifier)
 def create_xml(sender, instance=None, created=False, **kwargs):

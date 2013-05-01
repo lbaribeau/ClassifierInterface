@@ -25,6 +25,14 @@
     //  other buttons connect to classifierController functions.
     // I do the above two things in XCode now instead of here.
 }
+- (@action)new:(CPMenuItem)aSender
+{
+    // TODO: consider displaying the classifier list in the New window.
+    // (It might help the user to choose a name.)
+    [self fetchClassifiers];
+    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
+    [newClassifierWindow makeKeyAndOrderFront:aSender];
+}
 - (void)fetchClassifiers
 {
     [WLRemoteAction schedule:WLRemoteActionGetType
@@ -35,16 +43,9 @@
 - (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
-    [classifierArrayController addObjects:classifiers];
+    [classifierArrayController setContent:classifiers];
         // I get a warning for the previous line, not sure why...
         // ends up in CPURLConnection.j
-}
-- (@action)new:(CPMenuItem)aSender
-{
-    // TODO: consider displaying the classifier list in the New window.
-    // (It might help the user to choose a name.)
-    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
-    [newClassifierWindow makeKeyAndOrderFront:aSender];
 }
 - (CPString)suggestNameForNewClassifier
 /* Comes up with a suggestion for the user to name the new classifier.
@@ -52,7 +53,7 @@ Default suggestion is classifier0.
 Expects fetchClassifiers to have been called.*/
 {
     var i = 0,
-        classifierCount = [[classifierArrayController arrangedObjects] count];
+        classifierCount = [[classifierArrayController contentArray] count];
     for (; i < classifierCount; ++i)
     {
         var suggestion = [[CPString alloc] initWithFormat:@"classifier%d", i];
@@ -61,14 +62,14 @@ Expects fetchClassifiers to have been called.*/
             return suggestion;
         }
     }
-    return @"classifier" + CPString(classifierCount);
+    return @"classifier" + classifierCount.toString();
 }
 - (Boolean)classifierExists:(CPString)classifierName
 /* Tells you if we have a classifier with the given name.
 Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     var i = 0,
-        classifierArray = [classifierArrayController arrangedObjects],
+        classifierArray = [classifierArrayController contentArray],
         classifierCount = [classifierArray count];
     for (; i < classifierCount; ++i)
     {
@@ -83,6 +84,11 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     // TODO: Red text when name is already in use.
     console.log("newClassifierTextboxKeyDown");
+}
+- (@action)open:(CPMenuItem)aSender
+{
+    [self fetchClassifiers];
+    [openClassifiersWindow makeKeyAndOrderFront:aSender];
 }
 - (@action)createClassifier:(id)aSender
 {
@@ -151,6 +157,8 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         [selectedObjects[i] writeSymbolName:newName];
         console.log(selectedObjects[i]);
     }
+    [theClassifier makeAllDirty];
+    //[theClassifier makeDirtyProperty:@"id_name"];
 }
 - (@action)save:(CPMenuItem)aSender
 /* Save glyphs to xml on server */
@@ -167,8 +175,7 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         //[theClassifier ensureCreated];
         // patch and ensure saved
         // have patch contain the changed fields
-        [theClassifier makeAllDirty];
-        //[theClassifier makeDirtyProperty:@"id_name"];
+
         [theClassifier ensureSaved];
         [statusLabel setStringValue:@"Saved."];
     }
@@ -179,7 +186,25 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         [statusLabel setStringValue:@"Cannot save, there is no open file."];
     }
 }
-
+- (@action)close:(CPMenuItem)aSender
+{
+    if (theClassifier)
+    {
+        if ([theClassifier isDirty])
+        {
+            [theClassifier ensureSaved];
+            [statusLabel setStringValue:@"Saved and closed."];
+        }
+        else
+        {
+            [statusLabel setStringValue:@"Closed."];
+        }
+        theClassifier = null;
+        // Careful... should I repeat fetch here?  Shouldn't fetch be done when New or Open
+        // is called?  Try it out.
+        [classifierGlyphArrayController setContent:[]];
+    }
+}
 - (void)setUpCollectionView
 /* This function isn't currently being used as I am going with a table view for now */
 {
