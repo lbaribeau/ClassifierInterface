@@ -79,6 +79,16 @@ class Classifier(models.Model):
             glyphs.append(glyph_dict)
         return glyphs
 
+    def _create_new_xml(self):
+        """ Called when a POST is received and a new object is created.
+        """
+        gamera_database = etree.XML(r'<gamera-database version="2.0" />')
+        etree.SubElement(gamera_database, "glyphs")
+
+        f = open(self.classifier_path, 'w')
+        f.write(etree.tostring(gamera_database, pretty_print=True, xml_declaration=True, encoding="utf-8"))
+        return True
+
     def write_xml(self, classifier_glyphs):
         """ Intended to receive a PUT containing a Glyph in JSON.
         Writes XML.  Assume that I have a whole classifier (array of
@@ -86,7 +96,7 @@ class Classifier(models.Model):
         #write(r'<xml version="1.0" encoding="utf-8"?>')
         #classifier_glyphs_dict = dict(classifier_glyphs_str)
         #classifier_glyphs_dict
-        gamera_database = etree.XML(r'<gamera-database version="2.0" />')  # Maybe this'll give the header too
+        gamera_database = etree.XML(r'<gamera-database version="2.0" />')
         glyphs_element = etree.SubElement(gamera_database, "glyphs")
         for json_glyph in classifier_glyphs:
             glyph_element = etree.SubElement(glyphs_element, "glyph",
@@ -114,9 +124,8 @@ class Classifier(models.Model):
         #print etree.tostring(gamera_database, pretty_print=True)
         # etree.write()
 
-        # TODO: rewrite the above using the 'with' keyword.  See lxml docs.
         f = open(self.classifier_path, 'w')
-        f.write(etree.tostring(gamera_database, pretty_print=True))
+        f.write(etree.tostring(gamera_database, pretty_print=True, xml_declaration=True, encoding="utf-8"))
         return True
 
     def _base64_png_encode(self, glyph):

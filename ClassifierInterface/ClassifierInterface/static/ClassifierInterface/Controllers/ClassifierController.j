@@ -3,7 +3,6 @@
 @implementation ClassifierController : CPObject
 {
     Classifier        theClassifier;  // Initialized by Open
-    //CPArray classifierNames @accessors;  // Convenient array to have around
     @outlet CPWindow openClassifiersWindow;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
     @outlet SaveClassifierDelegate  saveClassifierDelegate;
@@ -39,13 +38,6 @@
     [classifierArrayController addObjects:classifiers];
         // I get a warning for the previous line, not sure why...
         // ends up in CPURLConnection.j
-    //[self classifierNames] = new CPArray();
-    //[self setClassifierNames:new CPArray()];
-    /*[self setClassifierNames:[]];
-    for (var i = 0, classifiersCount = [classifiers count]; i < classifiersCount; ++i)
-    {
-        classifierNames[i] = [classifiers[i] name];
-    }*/
 }
 - (@action)new:(CPMenuItem)aSender
 {
@@ -61,7 +53,6 @@ Expects fetchClassifiers to have been called.*/
 {
     var i = 0,
         classifierCount = [[classifierArrayController arrangedObjects] count];
-    //for (var i = 0, classifiersCount = [[self classifierNames] count]; i < classifiersCount; ++i)
     for (; i < classifierCount; ++i)
     {
         var suggestion = [[CPString alloc] initWithFormat:@"classifier%d", i];
@@ -77,12 +68,10 @@ Expects fetchClassifiers to have been called.*/
 Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     var i = 0,
-        //namesCount = [[self classifierNames] count];
         classifierArray = [classifierArrayController arrangedObjects],
         classifierCount = [classifierArray count];
     for (; i < classifierCount; ++i)
     {
-        //if (classifierNames[i] === classifierName)
         if (classifierName === [classifierArray[i] name])
         {
             return true;
@@ -115,7 +104,6 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         // hides/shows when the text box contains unused/used classifier names
         // (Then it will make sense for the 'Create' button to simply not respond)
     }
-
 }
 - (@action)openClassifier:(id)aSender
 {
@@ -128,7 +116,6 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
                     path:[openClassifier pk]
                     delegate:self
                     message:@"loading a single classifier"];
-
     // TODO: make this function available by double clicking in the open window
 }
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
@@ -153,8 +140,6 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     console.log(cv);
     */
 }
-
-
 - (@action)writeSymbolName:(CPTextField)aSender
 /* Write the new symbol for each selected glyph */
 {
@@ -191,7 +176,7 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     {
         // TODO: Error checking: Grey out the Save function on the menu until something
         // is open.
-        [statusLabel setStringValue:@"Save failed: There is no open file."];
+        [statusLabel setStringValue:@"Cannot save, there is no open file."];
     }
 }
 
@@ -267,14 +252,6 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 }
 @end
 
-// Refactoring everything into classifierController because otherwise OpenDelegate
-// did everything.  To implement Save, OpenDelegate would have to give theClassifer
-// to classifierController.  It's better for classifierController should
-// definitely have theClassifier, so openDelegate doesn't need it.
-// Since I was doing it to open I did it to Load as well.  Maybe that wasn't necessary.
-// We'll see if this pattern sticks.
-
-
 @implementation PhotoView : CPImageView
 /*
 PhotoView implements functions required by the collection view
@@ -306,15 +283,3 @@ see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
 }
 @end
 
-/*
-    Trying to get CV to work with bindings:
-    console.log("CollectionView:");
-    console.log(cv);
-    console.log([cv itemPrototype]);
-    console.log([[cv itemPrototype] view]);
-    console.log([[[cv itemPrototype] view] image]);  // good selector, returns null
-    // console.log([[[cv itemPrototype] view] representedObject]);  bad selector
-    //console.log([[[cv itemPrototype] view] data]);  // No CPImageView data
-    // console.log([[[cv itemPrototype] view] view]);  // No CPImageView view
-    console.log([[[[cv itemPrototype] view] image] data]);  // null null
-*/
