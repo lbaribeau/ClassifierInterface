@@ -4,6 +4,8 @@
 {
     Classifier        theClassifier;  // Initialized by Open
     @outlet CPWindow openClassifiersWindow;
+    @outlet InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
+    @outlet InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
     @outlet SaveClassifierDelegate  saveClassifierDelegate;
     @outlet CPArrayController   classifierArrayController;
@@ -29,28 +31,22 @@
 {
     // TODO: consider displaying the classifier list in the New window.
     // (It might help the user to choose a name.)
-    [self fetchClassifiers];
-    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
-    [newClassifierWindow makeKeyAndOrderFront:aSender];
-}
-- (void)fetchClassifiers
-{
     [WLRemoteAction schedule:WLRemoteActionGetType
                     path:'/classifiers/'
-                    delegate:loadClassifiersDelegate
+                    delegate:initNewFetchClassifiersDelegate
                     message:"Loading classifier list"];
 }
-- (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
+- (void)initNewFetchClassifiersDidFinish:(WLRemoteAction)anAction
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController setContent:classifiers];
-        // I get a warning for the previous line, not sure why...
-        // ends up in CPURLConnection.j
+    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
+    [newClassifierWindow makeKeyAndOrderFront:null];
 }
 - (CPString)suggestNameForNewClassifier
 /* Comes up with a suggestion for the user to name the new classifier.
 Default suggestion is classifier0.
-Expects fetchClassifiers to have been called.*/
+Expects classifierArrayController to have been populated.*/
 {
     var i = 0,
         classifierCount = [[classifierArrayController contentArray] count];
@@ -87,8 +83,16 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 }
 - (@action)open:(CPMenuItem)aSender
 {
-    [self fetchClassifiers];
-    [openClassifiersWindow makeKeyAndOrderFront:aSender];
+    [WLRemoteAction schedule:WLRemoteActionGetType
+            path:'/classifiers/'
+            delegate:initOpenFetchClassifiersDelegate
+            message:"Loading classifier list for open"];
+}
+- (void)initOpenFetchClassifiersDidFinish:(WLRemoteAction)anAction
+{
+    var classifiers = [Classifier objectsFromJson:[anAction result]];
+    [classifierArrayController setContent:classifiers];
+    [openClassifiersWindow makeKeyAndOrderFront:null];
 }
 - (@action)createClassifier:(id)aSender
 {
@@ -151,17 +155,17 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     var newName = [aSender stringValue],
         selectedObjects = [classifierGlyphArrayController selectedObjects];
-    console.log("Writing " + [selectedObjects count] + " glyph(s).");
     for (var i = 0; i < [selectedObjects count]; ++i)
     {
         [selectedObjects[i] writeSymbolName:newName];
-        console.log(selectedObjects[i]);
     }
     [theClassifier makeAllDirty];
     //[theClassifier makeDirtyProperty:@"id_name"];
+    [theClassifier ensureSaved];
 }
+/*
 - (@action)save:(CPMenuItem)aSender
-/* Save glyphs to xml on server */
+// Save glyphs to xml on server
 {
     if (theClassifier)
     {
@@ -185,7 +189,7 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         // is open.
         [statusLabel setStringValue:@"Cannot save, there is no open file."];
     }
-}
+}*/
 - (@action)close:(CPMenuItem)aSender
 {
     if (theClassifier)
@@ -204,6 +208,27 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         // is called?  Try it out.
         [classifierGlyphArrayController setContent:[]];
     }
+}
+
+
+
+- (void)fetchClassifiers
+// Fetches classifiers and assigns them to classifierArrayController's content.
+// NOTE: No longer used!
+// I am opting for more controlled versions of this functionality.
+// When I do a fetch, generally want control of the callback.
+{
+    [WLRemoteAction schedule:WLRemoteActionGetType
+                    path:'/classifiers/'
+                    delegate:loadClassifiersDelegate
+                    message:"Loading classifier list for new"];
+}
+- (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
+{
+    var classifiers = [Classifier objectsFromJson:[anAction result]];
+    [classifierArrayController setContent:classifiers];
+        // I get a warning for the previous line, not sure why...
+        // ends up in CPURLConnection.j
 }
 - (void)setUpCollectionView
 /* This function isn't currently being used as I am going with a table view for now */
@@ -247,24 +272,13 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     @outlet ClassifierController classifierController;
 }
-
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
     [classifierController fetchClassifiersDidFinish:anAction];
 }
 @end
-/*
-@implementation OpenClassifierDelegate : CPObject
-{
-    @outlet     ClassifierController classifierController;
 
-}
-- (void)remoteActionDidFinish:(WLRemoteAction)anAction
-{
-    [classifierController openActionDidFinish:anAction];
-}
-@end
-*/
+
 @implementation SaveClassifierDelegate : CPObject
 {
     @outlet     ClassifierController classifierController;
@@ -274,6 +288,27 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     // What does the response look like?
     // TODO: write some kind of validation or the response here.
     [classifierController saveActionDidFinish:anAction];
+}
+@end
+
+@implementation InitNewFetchClassifiersDelegate : CPObject
+{
+    @outlet ClassifierController classifierController;
+}
+- (void)remoteActionDidFinish:(WLRemoteAction)anAction
+{
+    [classifierController initNewFetchClassifiersDidFinish:anAction];
+}
+@end
+
+@implementation InitOpenFetchClassifiersDelegate : CPObject
+{
+    @outlet     ClassifierController classifierController;
+
+}
+- (void)remoteActionDidFinish:(WLRemoteAction)anAction
+{
+    [classifierController initOpenFetchClassifiersDidFinish:anAction];
 }
 @end
 
