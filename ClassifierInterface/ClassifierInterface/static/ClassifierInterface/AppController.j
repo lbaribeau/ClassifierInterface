@@ -11,6 +11,7 @@
 @import <Ratatosk/Ratatosk.j>
 @import "Models/Classifier.j"
 @import "Controllers/ClassifierController.j"
+@import "Delegates/SymbolOutlineDelegate.j"
 @import "Transformers/PngTransformer.j"
 @import "Models/Glyph.j"
 
@@ -18,9 +19,8 @@
 @implementation AppController : CPObject
 {
     @outlet CPWindow theWindow;
-    @outlet ClassifierController classifierController;
-    @outlet     CPTextField       symbolNameEntry;
-
+    @outlet CPTextField symbolNameEntry;
+    @outlet SymbolOutlineDelegate symbolOutline;
     CPCookie sessionID;
     CPCookie CSRFToken;
 }
@@ -32,6 +32,7 @@
     [[WLRemoteLink sharedRemoteLink] setDelegate:self];
     [theWindow setFullPlatformWindow:YES];
     [WLRemoteLink setDefaultBaseURL:@""];
+    //[symbolOutline applicationDidFinishLaunching:null];
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
