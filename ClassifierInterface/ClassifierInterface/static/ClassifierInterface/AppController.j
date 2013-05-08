@@ -32,7 +32,6 @@
     [[WLRemoteLink sharedRemoteLink] setDelegate:self];
     [theWindow setFullPlatformWindow:YES];
     [WLRemoteLink setDefaultBaseURL:@""];
-    //[symbolOutline applicationDidFinishLaunching:null];
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {

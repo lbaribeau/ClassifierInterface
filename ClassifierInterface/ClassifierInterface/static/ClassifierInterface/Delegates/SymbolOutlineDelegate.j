@@ -1,8 +1,6 @@
 
 // Credit/Reference: http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html
 
-// TODO: imports
-
 @implementation SymbolOutlineDelegate : CPObject
 {
     CPDictionary items;
@@ -13,55 +11,37 @@
 
 - (void)awakeFromCib
 {
-    // console.log("SymbolOutlineController initializing!");
-    //CPLogRegister(CPLogConsole);
-
-    //var theWindow = [[CPWindow alloc] initWithContentRect:CGRectMakeZero() styleMask:CPBorderlessBridgeWindowMask],
-    //    contentView = [theWindow contentView];
-
-    //var scrollView = [[CPScrollView alloc] initWithFrame:CGRectMake(0.0, 0.0, 200.0, CGRectGetHeight([contentView bounds]))];
     [scrollView setBackgroundColor:[CPColor colorWithHexString:@"e0ecfa"]];
     [scrollView setAutohidesScrollers:YES];
 
-    //var theOutlineView = [[CPOutlineView alloc] initWithFrame:[[scrollView contentView] bounds]],
-    //    textColumn = [[CPTableColumn alloc] initWithIdentifier:@"TextColumn"];
-
-    //[textColumn setWidth:200.0];
-
     [theOutlineView setHeaderView:nil];
     [theOutlineView setCornerView:nil];
-    //[theOutlineView addTableColumn:textColumn];
 
     [theOutlineView setOutlineTableColumn:textColumn];
-
-    // I think the cib does this
-    //[scrollView setDocumentView:theOutlineView];
-
-    //[contentView addSubview:scrollView];
 
     items = [CPDictionary dictionaryWithObjects:[[@"glossary 1"], [@"proj 1", @"proj 2", @"proj 3"]]
                           forKeys:[@"Glossaries", @"Projects"]];
     [theOutlineView setDataSource:self];  // This tells the outlineView to look at SymbolOutlineController
-                                        // for the methods it needs.
+                                          // for the methods it needs.
 }
 
 - (id)outlineView:(CPOutlineView)outlineView child:(int)index ofItem:(id)item
 {
-    CPLog("outlineView:%@ child:%@ ofItem:%@", outlineView, index, item);
+    //CPLog("outlineView:%@ child:%@ ofItem:%@", outlineView, index, item);
 
     if (item === nil)
     {
         // item is nil for the top level of the tree... so return key[index]
         // (this is the text for the index'th top level entry)
         var keys = [items allKeys];
-        console.log([keys objectAtIndex:index]);
+        //console.log([keys objectAtIndex:index]);
         return [keys objectAtIndex:index];
     }
     else
     {
         // if item is not nil, then we have our key already, because we're in a subtree
         var values = [items objectForKey:item];
-        console.log([values objectAtIndex:index]);
+        //console.log([values objectAtIndex:index]);
         return [values objectAtIndex:index];
     }
     // For an array of symbol names, this function would be O(n)
@@ -109,25 +89,32 @@
     //    'neume': {'virga': {}
     //    }
     //}
+
+    // One main problem with the list idea is that the '.' loses it's meaning:
+    // it's just strings then that follow a pattern.  The dots are meaningful
+    // to Gamera and we need to convey that.
+
+    // What if I omit text, to convey meaning, in a way that doesn't waste rows...
+    // (You will only be able to drag and drop into bins that already have a neume.)
 }
 
 
 
 - (BOOL)outlineView:(CPOutlineView)outlineView isItemExpandable:(id)item
 {
-    CPLog("outlineView:%@ isItemExpandable:%@", outlineView, item);
+    //CPLog("outlineView:%@ isItemExpandable:%@", outlineView, item);
 
     var values = [items objectForKey:item];  // returns 0 if item isn't a top level key
                                              // and nonzero if it is
                                              // (only top level keys are expandable)
-    console.log(([values count] > 0));
+    //console.log(([values count] > 0));
     return ([values count] > 0);
 }
 
 - (int)outlineView:(CPOutlineView)outlineView numberOfChildrenOfItem:(id)item
 /* Return how many children an item has */
 {
-    CPLog("outlineView:%@ numberOfChildrenOfItem:%@", outlineView, item);
+    //CPLog("outlineView:%@ numberOfChildrenOfItem:%@", outlineView, item);
 
     if (item === nil)
     {
@@ -146,9 +133,9 @@
 - (id)outlineView:(CPOutlineView)outlineView objectValueForTableColumn:(CPTableColumn)tableColumn byItem:(id)item
 /* Return the text for the cell for the given item */
 {
-    CPLog("outlineView:%@ objectValueForTableColumn:%@ byItem:%@", outlineView, tableColumn, item);
+    //CPLog("outlineView:%@ objectValueForTableColumn:%@ byItem:%@", outlineView, tableColumn, item);
 
-    console.log(item);
+    //console.log(item);
 
     return item;
 }

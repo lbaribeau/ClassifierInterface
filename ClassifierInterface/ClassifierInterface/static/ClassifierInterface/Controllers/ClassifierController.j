@@ -3,29 +3,40 @@
 @implementation ClassifierController : CPObject
 {
     Classifier        theClassifier;  // Initialized by Open
-    @outlet CPWindow openClassifiersWindow;
+    @outlet CPArrayController classifierArrayController;
+
+    @outlet CPWindow newClassifierWindow;
+    @outlet CPButton createButton;
+    @outlet CPTextField newClassifierTextfield;
+    @outlet CPTextField nameUsedLabel;
+    @outlet CPTextField statusLabel;
+    @outlet CPWindow openClassifierWindow;
+    @outlet CPButton openButton;
     @outlet InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
+    @outlet NewClassifierTextfieldDelegate newClassifierTextfieldDelegate;
     @outlet InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
     @outlet SaveClassifierDelegate  saveClassifierDelegate;
-    @outlet CPArrayController   classifierArrayController;
-    @outlet CPWindow newClassifierWindow;
-    @outlet CPTextField newClassifierTextbox;
-    @outlet CPTextField nameUsedLabel;  // TODO: implement red text when user enters a used name
-    @outlet CPTextField statusLabel;
 
     @outlet     CPArrayController classifierGlyphArrayController;
     @outlet     CPCollectionView  cv;
                 CPArray           imageList;
+    @outlet     CPTableView       tv;
 }
-- (void)awakeFromCib
+
 // applicationDidFinishLaunching didn't get called... weird
+// Seems to only work on AppController.
+- (void)awakeFromCib
 {
+    [newClassifierTextfield setDelegate:newClassifierTextfieldDelegate];
+        // (Required for red warning text if user enters a classifier name that's already used.)
+    [newClassifierWindow setDefaultButton:createButton];
+    [openClassifierWindow setDefaultButton:openButton];
+
     // I used to set up actions of all of the buttons here, but then
     // I figured out how to do it in XCode:
     //  cancel buttons send an action to the windows' close function
     //  other buttons connect to classifierController functions.
-    // I do the above two things in XCode now instead of here.
 }
 - (@action)new:(CPMenuItem)aSender
 {
@@ -40,7 +51,8 @@
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController setContent:classifiers];
-    [newClassifierTextbox setObjectValue:[self suggestNameForNewClassifier]];
+    [newClassifierTextfield setStringValue:[self suggestNameForNewClassifier]];
+    [self updateNameUsedLabel];
     [newClassifierWindow makeKeyAndOrderFront:null];
 }
 - (CPString)suggestNameForNewClassifier
@@ -76,10 +88,16 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     }
     return false;
 }
-- (@action)newClassifierTextboxKeyDown:(id)aSender
+- (void)updateNameUsedLabel
 {
-    // TODO: Red text when name is already in use.
-    console.log("newClassifierTextboxKeyDown");
+    if ([self classifierExists:[newClassifierTextfield stringValue]])
+    {
+        [nameUsedLabel setHidden:NO];
+    }
+    else
+    {
+        [nameUsedLabel setHidden:YES];
+    }
 }
 - (@action)open:(CPMenuItem)aSender
 {
@@ -92,14 +110,14 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController setContent:classifiers];
-    [openClassifiersWindow makeKeyAndOrderFront:null];
+    [openClassifierWindow makeKeyAndOrderFront:null];
 }
 - (@action)createClassifier:(id)aSender
 {
     // This is for the create button in the New Classifier window.
     // Check the user's classifier name then create.
     // TODO: Enter button from the textbox must call this function
-    var newName = [newClassifierTextbox objectValue];
+    var newName = [newClassifierTextfield stringValue];
     if (! [self classifierExists:newName])
     {
         var classifier = [[Classifier alloc] init:newName];
@@ -120,7 +138,7 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     // Read what is selected and get the glyphs of the corresponding
     // classifier.
     var openClassifier = [[classifierArrayController selectedObjects] objectAtIndex:0];
-    [openClassifiersWindow close];
+    [openClassifierWindow close];
 
     [WLRemoteAction schedule:WLRemoteActionGetType
                     path:[openClassifier pk]
@@ -145,10 +163,9 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     //                          toObject:classifierGlyphArrayController
     //                          withKeyPath:@""]
 
-    /* Uncomment these lines and make the 'Saved Collection View' window visible at launch
     [self setUpCollectionView];
     console.log(cv);
-    */
+
 }
 - (@action)writeSymbolName:(CPTextField)aSender
 /* Write the new symbol for each selected glyph */
@@ -230,6 +247,8 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         // I get a warning for the previous line, not sure why...
         // ends up in CPURLConnection.j
 }
+
+
 - (void)setUpCollectionView
 /* This function isn't currently being used as I am going with a table view for now */
 {
@@ -248,11 +267,15 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     var theClassifierGlyphs = [theClassifier glyphs];
     for (var i = 0; i < theClassifierGlyphs.length; i++)
     {
+        console.log("i is " + i);
         var glyphImageData = [theClassifierGlyphs[i] pngData],
             glyphImage = [[CPImage alloc] initWithData:glyphImageData];
         imageList[i] = glyphImage;
     }
     [cv setContent:imageList];
+    [cv setBackgroundColor:[CPColor blueColor]];
+    [tv setBackgroundColor:[CPColor clearColor]];
+    //[tv setHeadverView:cv];
 
     // I would prefer if I didn't have to make a pile of CPImages but there's no other way
     // with the collection view from what I can tell.  Maybe I can rewrite the
@@ -303,12 +326,22 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
 
 @implementation InitOpenFetchClassifiersDelegate : CPObject
 {
-    @outlet     ClassifierController classifierController;
+    @outlet ClassifierController classifierController;
 
 }
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
     [classifierController initOpenFetchClassifiersDidFinish:anAction];
+}
+@end
+
+@implementation NewClassifierTextfieldDelegate : CPObject
+{
+    @outlet ClassifierController classifierController;
+}
+- (void)controlTextDidChange:(CPNotification)aNotification
+{
+    [classifierController updateNameUsedLabel];
 }
 @end
 
