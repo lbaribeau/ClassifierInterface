@@ -2,7 +2,7 @@
 
 @implementation ClassifierController : CPObject
 {
-    Classifier        theClassifier;  // Initialized by Open
+    Classifier theClassifier;  // Initialized by Open
     @outlet CPArrayController classifierArrayController;
 
     @outlet CPWindow newClassifierWindow;
@@ -16,12 +16,15 @@
     @outlet NewClassifierTextfieldDelegate newClassifierTextfieldDelegate;
     @outlet InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
-    @outlet SaveClassifierDelegate  saveClassifierDelegate;
+    @outlet SaveClassifierDelegate saveClassifierDelegate;
 
-    @outlet     CPArrayController classifierGlyphArrayController;
-    @outlet     CPCollectionView  cv;
-                CPArray           imageList;
-    @outlet     CPTableView       tv;
+    @outlet CPArrayController classifierGlyphArrayController;
+    @outlet CPCollectionView cv;
+            CPArray imageList;
+    @outlet CPTableView tv;
+
+    @outlet CPArrayController symbolArrayController;
+
 }
 
 // applicationDidFinishLaunching didn't get called... weird
@@ -74,14 +77,45 @@ Expects classifierArrayController to have been populated.*/
 }
 - (Boolean)classifierExists:(CPString)classifierName
 /* Tells you if we have a classifier with the given name.
-Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
+Doesn't go to the server... it relies on the previous call to fetchClassifiers.
+Called by the newWindow when choosing a default name, or checking when create
+was pressed.*/
 {
+    return [self arrayContains:[classifierArrayController contentArray] :classifierName];
+    /*
     var i = 0,
         classifierArray = [classifierArrayController contentArray],
         classifierCount = [classifierArray count];
     for (; i < classifierCount; ++i)
     {
         if (classifierName === [classifierArray[i] name])
+        {
+            return true;
+        }
+    }
+    return false;*/
+}
+- (Boolean)arrayContains:(CPArray)array:(CPString)string
+/* Looks for a string in an array and returns true if it finds it */
+{
+    var i = 0,
+        array_count = [array count];
+    for (; i < array_count; ++i)
+    {
+        if (array[i] === string)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+- (Boolean)reverseArrayContains:(CPArray)array:(CPString)string
+/* Same as arrayContains except starts searching at the end. */
+{
+    var i = [array count];
+    for (; i >= 0; --i)
+    {
+        if (array[i] === string)
         {
             return true;
         }
@@ -99,19 +133,6 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
         [nameUsedLabel setHidden:YES];
     }
 }
-- (@action)open:(CPMenuItem)aSender
-{
-    [WLRemoteAction schedule:WLRemoteActionGetType
-            path:'/classifiers/'
-            delegate:initOpenFetchClassifiersDelegate
-            message:"Loading classifier list for open"];
-}
-- (void)initOpenFetchClassifiersDidFinish:(WLRemoteAction)anAction
-{
-    var classifiers = [Classifier objectsFromJson:[anAction result]];
-    [classifierArrayController setContent:classifiers];
-    [openClassifierWindow makeKeyAndOrderFront:null];
-}
 - (@action)createClassifier:(id)aSender
 {
     // This is for the create button in the New Classifier window.
@@ -128,15 +149,26 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     else
     {
         // Do nothing!
-        // TODO: Ensure that the label that writes in red, "Name already in use!"
-        // hides/shows when the text box contains unused/used classifier names
-        // (Then it will make sense for the 'Create' button to simply not respond)
+        // The user will understand why the button did nothing because of the
+        // red text that displays when classifierExists is true.
     }
+}
+- (@action)open:(CPMenuItem)aSender
+{
+    [WLRemoteAction schedule:WLRemoteActionGetType
+            path:'/classifiers/'
+            delegate:initOpenFetchClassifiersDelegate
+            message:"Loading classifier list for open"];
+}
+- (void)initOpenFetchClassifiersDidFinish:(WLRemoteAction)anAction
+{
+    var classifiers = [Classifier objectsFromJson:[anAction result]];
+    [classifierArrayController setContent:classifiers];
+    [openClassifierWindow makeKeyAndOrderFront:null];
 }
 - (@action)openClassifier:(id)aSender
 {
-    // Read what is selected and get the glyphs of the corresponding
-    // classifier.
+    // Read what is selected and get the glyphs of the corresponding classifier.
     var openClassifier = [[classifierArrayController selectedObjects] objectAtIndex:0];
     [openClassifierWindow close];
 
@@ -166,7 +198,73 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers*/
     [self setUpCollectionView];
     console.log(cv);
 
+    [self _initializeSymbols];
 }
+- (void)_initializeSymbols
+{
+    // Loop through all glyphs and build an array of symbols.
+
+    // (Shouldn't the server do this?  Yeah.  Even if there aren't
+    // symbols in the xml, it should send them as JSON.  Then the client
+    // can maintain the array any time things are changed.)
+    // Well... that doesn't help because the list of symbols doesn't
+    // tell you the counts.  Add that to the XML?  Or just not depend on
+    // that?  I think the latter is superior.  (slower but more robust)
+    // Either way we will need this code because we need to support the case
+    // where the server doesn't have a symbol list.
+    var i = 0,
+        //glyphArray = [classifierGlyphArrayController contentArray],
+        glyphArray = [theClassifier glyphs],
+        glyphCount = [glyphArray count],
+        symbolCounts = [CPDictionary dictionary],
+        j = 0;
+
+    [symbolArrayController setContent:[]];  // This is necessary if the user didn't 'close'
+    for (; i < glyphCount; ++i)
+    {
+        var newSymbol = [glyphArray[i] idName];
+        console.log("glyph i: " + i);
+        console.log(glyphArray[i]);
+        if (! [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol])
+        {
+            console.log("true...");
+            [symbolCounts setObject:1 forKey:newSymbol];
+            [symbolArrayController addObject:newSymbol];
+        }
+        else
+        {
+            console.log("false...");
+            var old_val = [symbolCounts objectForKey:newSymbol];
+            [symbolCounts setObject:(old_val + 1) forKey:newSymbol];
+        }
+    }
+    // TODO: add symbolArrayController to close
+
+    // Hmmm... what I really want is a dict and the left column to contain the keys to the dict,
+    // and the value is a count.  Can I trust a table view to read a dict?
+    // What if I made an array by binding to glyphArray.idName.  Not really necessary: I could
+    // already make a table with an array built from glyph.idName.  I need to make an array with
+    // only one of each string. (symbolArrayController)  So, back to the dict idea.  I should be
+    // able to bind the table content to the dict key and another column to the count.  I'd rather
+    // put the count in brackets.  Add that to the todo list and do it with two columns.  No,
+    // that's debt.  Just build an array of strings that is what I want.
+    /*console.log([symbolArrayController contentArray]);
+    console.log([symbolArrayController contentArray][0]);
+    console.log([symbolArrayController contentArray][1]);
+    console.log(symbolCounts);
+    console.log([symbolCounts valueForKey:@"clef.c"]);*/
+
+    // Now append (n) to the end of each string...
+    var j = 0,
+        symbolArray = [symbolArrayController contentArray],
+        symbolCount = [symbolArray count];
+    for (; j < symbolCount; ++j)
+    {
+        symbolArray[j] = [symbolArray[j] stringByAppendingFormat:@" (%d)", [symbolCounts objectForKey:symbolArray[j]]];
+    }
+    console.log([symbolArrayController contentArray]);
+}
+
 - (@action)writeSymbolName:(CPTextField)aSender
 /* Write the new symbol for each selected glyph */
 {
