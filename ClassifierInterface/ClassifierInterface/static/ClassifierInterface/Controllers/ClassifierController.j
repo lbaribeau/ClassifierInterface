@@ -1,4 +1,5 @@
 @import "../Models/Classifier.j"
+@import "../Models/Symbol.j"
 
 @implementation ClassifierController : CPObject
 {
@@ -109,18 +110,20 @@ was pressed.*/
     }
     return false;
 }
-- (Boolean)reverseArrayContains:(CPArray)array:(CPString)string
-/* Same as arrayContains except starts searching at the end. */
+- (int)reverseArrayContains:(CPArray)array:(id)thing
+/* Intuitive except:
+ - starts searching at the end
+ - isEqual must be defined */
 {
     var i = [array count];
     for (; i >= 0; --i)
     {
-        if (array[i] === string)
+        if ([array[i] isEqual:thing])
         {
-            return true;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 - (void)updateNameUsedLabel
 {
@@ -216,26 +219,29 @@ was pressed.*/
         //glyphArray = [classifierGlyphArrayController contentArray],
         glyphArray = [theClassifier glyphs],
         glyphCount = [glyphArray count],
-        symbolCounts = [CPDictionary dictionary],
         j = 0;
 
     [symbolArrayController setContent:[]];  // This is necessary if the user didn't 'close'
     for (; i < glyphCount; ++i)
     {
-        var newSymbol = [glyphArray[i] idName];
-        console.log("glyph i: " + i);
-        console.log(glyphArray[i]);
-        if (! [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol])
+        //var newSymbolName = [glyphArray[i] idName],
+        var newSymbol = [[Symbol alloc] init:[glyphArray[i] idName]],
+            found = [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol];
+        if (found < 0)
         {
-            console.log("true...");
-            [symbolCounts setObject:1 forKey:newSymbol];
+            //console.log("true...");
+            //var newSymbol = [[Symbol alloc] init:newSymbolName];
             [symbolArrayController addObject:newSymbol];
         }
         else
         {
+            //console.log("false...");
+            [[symbolArrayController contentArray][found] increment];
+            /*var symbol = [symbolArrayController contentArray][found];
             console.log("false...");
-            var old_val = [symbolCounts objectForKey:newSymbol];
-            [symbolCounts setObject:(old_val + 1) forKey:newSymbol];
+            // var old_val = [symbolCounts objectForKey:newSymbolName];
+            var old_count = [symbol count];
+            //[symbolCounts setObject:(old_val + 1) forKey:newSymbolName];*/
         }
     }
     // TODO: add symbolArrayController to close
@@ -255,13 +261,13 @@ was pressed.*/
     console.log([symbolCounts valueForKey:@"clef.c"]);*/
 
     // Now append (n) to the end of each string...
-    var j = 0,
+    /*var j = 0,
         symbolArray = [symbolArrayController contentArray],
         symbolCount = [symbolArray count];
     for (; j < symbolCount; ++j)
     {
         symbolArray[j] = [symbolArray[j] stringByAppendingFormat:@" (%d)", [symbolCounts objectForKey:symbolArray[j]]];
-    }
+    }*/
     console.log([symbolArrayController contentArray]);
 }
 
