@@ -1,5 +1,6 @@
 @import "../Models/Classifier.j"
 @import "../Models/Symbol.j"
+@import "../Delegates/OpenClassifierTableViewDelegate.j"
 
 @implementation ClassifierController : CPObject
 {
@@ -7,17 +8,18 @@
     @outlet CPArrayController classifierArrayController;
 
     @outlet CPWindow newClassifierWindow;
+    @outlet InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
+    @outlet NewClassifierTextfieldDelegate newClassifierTextfieldDelegate;
     @outlet CPButton createButton;
     @outlet CPTextField newClassifierTextfield;
     @outlet CPTextField nameUsedLabel;
     @outlet CPTextField statusLabel;
     @outlet CPWindow openClassifierWindow;
-    @outlet CPButton openButton;
-    @outlet InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
-    @outlet NewClassifierTextfieldDelegate newClassifierTextfieldDelegate;
     @outlet InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
-    @outlet LoadClassifiersDelegate loadClassifiersDelegate;
-    @outlet SaveClassifierDelegate saveClassifierDelegate;
+    @outlet CPButton openButton;
+    @outlet CPWindow deleteClassifierWindow;
+    @outlet CPTableView openClassifierTableView;
+    @outlet OpenClassifierTableViewDelegate openClassifierTableViewDelegate;
 
     @outlet CPArrayController classifierGlyphArrayController;
     @outlet CPCollectionView cv;
@@ -25,6 +27,10 @@
     @outlet CPTableView tv;
 
     @outlet CPArrayController symbolArrayController;
+
+    // Not currently used.
+    @outlet LoadClassifiersDelegate loadClassifiersDelegate;
+    @outlet SaveClassifierDelegate saveClassifierDelegate;
 
 }
 
@@ -36,12 +42,15 @@
         // (Required for red warning text if user enters a classifier name that's already used.)
     [newClassifierWindow setDefaultButton:createButton];
     [openClassifierWindow setDefaultButton:openButton];
+    [openClassifierTableView setDelegate:openClassifierTableViewDelegate];
+
 
     // I used to set up actions of all of the buttons here, but then
     // I figured out how to do it in XCode:
     //  cancel buttons send an action to the windows' close function
     //  other buttons connect to classifierController functions.
 }
+
 - (@action)new:(CPMenuItem)aSender
 {
     // TODO: consider displaying the classifier list in the New window.
@@ -82,8 +91,7 @@ Doesn't go to the server... it relies on the previous call to fetchClassifiers.
 Called by the newWindow when choosing a default name, or checking when create
 was pressed.*/
 {
-    return [self arrayContains:[classifierArrayController contentArray] :classifierName];
-    /*
+    //return [self arrayContains:[classifierArrayController contentArray] :classifierName];
     var i = 0,
         classifierArray = [classifierArrayController contentArray],
         classifierCount = [classifierArray count];
@@ -94,38 +102,10 @@ was pressed.*/
             return true;
         }
     }
-    return false;*/
-}
-- (Boolean)arrayContains:(CPArray)array:(CPString)string
-/* Looks for a string in an array and returns true if it finds it */
-{
-    var i = 0,
-        array_count = [array count];
-    for (; i < array_count; ++i)
-    {
-        if (array[i] === string)
-        {
-            return true;
-        }
-    }
     return false;
 }
-- (int)reverseArrayContains:(CPArray)array:(id)thing
-/* Intuitive except:
- - starts searching at the end
- - isEqual must be defined */
-{
-    var i = [array count];
-    for (; i >= 0; --i)
-    {
-        if ([array[i] isEqual:thing])
-        {
-            return i;
-        }
-    }
-    return -1;
-}
 - (void)updateNameUsedLabel
+// Gets called on every keystroke of the NewClassifier textbox
 {
     if ([self classifierExists:[newClassifierTextfield stringValue]])
     {
@@ -142,7 +122,7 @@ was pressed.*/
     // Check the user's classifier name then create.
     // TODO: Enter button from the textbox must call this function
     var newName = [newClassifierTextfield stringValue];
-    if (! [self classifierExists:newName])
+    if (newName !== @"" && ! [self classifierExists:newName])
     {
         var classifier = [[Classifier alloc] init:newName];
         [classifierArrayController addObject:classifier];
@@ -167,9 +147,9 @@ was pressed.*/
 {
     var classifiers = [Classifier objectsFromJson:[anAction result]];
     [classifierArrayController setContent:classifiers];
-    [openClassifierWindow makeKeyAndOrderFront:null];
+    [openClassifierWindow makeKeyAndOrderFront:null];  // Opens the window
 }
-- (@action)openClassifier:(id)aSender
+- (@action)openClassifier:(CPButton)aSender
 {
     // Read what is selected and get the glyphs of the corresponding classifier.
     var openClassifier = [[classifierArrayController selectedObjects] objectAtIndex:0];
@@ -216,7 +196,6 @@ was pressed.*/
     // Either way we will need this code because we need to support the case
     // where the server doesn't have a symbol list.
     var i = 0,
-        //glyphArray = [classifierGlyphArrayController contentArray],
         glyphArray = [theClassifier glyphs],
         glyphCount = [glyphArray count],
         j = 0;
@@ -224,53 +203,46 @@ was pressed.*/
     [symbolArrayController setContent:[]];  // This is necessary if the user didn't 'close'
     for (; i < glyphCount; ++i)
     {
-        //var newSymbolName = [glyphArray[i] idName],
         var newSymbol = [[Symbol alloc] init:[glyphArray[i] idName]],
-            found = [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol];
+        //var found = [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol];
+            found = [self reverseArrayContains:[symbolArrayController contentArray] item:newSymbol];
         if (found < 0)
         {
-            //console.log("true...");
-            //var newSymbol = [[Symbol alloc] init:newSymbolName];
             [symbolArrayController addObject:newSymbol];
         }
         else
         {
-            //console.log("false...");
             [[symbolArrayController contentArray][found] increment];
-            /*var symbol = [symbolArrayController contentArray][found];
-            console.log("false...");
-            // var old_val = [symbolCounts objectForKey:newSymbolName];
-            var old_count = [symbol count];
-            //[symbolCounts setObject:(old_val + 1) forKey:newSymbolName];*/
         }
     }
-    // TODO: add symbolArrayController to close
-
-    // Hmmm... what I really want is a dict and the left column to contain the keys to the dict,
-    // and the value is a count.  Can I trust a table view to read a dict?
-    // What if I made an array by binding to glyphArray.idName.  Not really necessary: I could
-    // already make a table with an array built from glyph.idName.  I need to make an array with
-    // only one of each string. (symbolArrayController)  So, back to the dict idea.  I should be
-    // able to bind the table content to the dict key and another column to the count.  I'd rather
-    // put the count in brackets.  Add that to the todo list and do it with two columns.  No,
-    // that's debt.  Just build an array of strings that is what I want.
-    /*console.log([symbolArrayController contentArray]);
-    console.log([symbolArrayController contentArray][0]);
-    console.log([symbolArrayController contentArray][1]);
-    console.log(symbolCounts);
-    console.log([symbolCounts valueForKey:@"clef.c"]);*/
-
-    // Now append (n) to the end of each string...
-    /*var j = 0,
-        symbolArray = [symbolArrayController contentArray],
-        symbolCount = [symbolArray count];
-    for (; j < symbolCount; ++j)
-    {
-        symbolArray[j] = [symbolArray[j] stringByAppendingFormat:@" (%d)", [symbolCounts objectForKey:symbolArray[j]]];
-    }*/
     console.log([symbolArrayController contentArray]);
 }
-
+- (int)reverseArrayContains:(CPArray)array item:(id)thing
+/* Intuitive except:
+ - starts searching at the end
+ - isEqual must be defined */
+{
+    var i = [array count];
+    for (; i >= 0; --i)
+    {
+        if ([array[i] isEqual:thing])
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+- (@action)showAreYouSureWindow:(CPButton)firstDeleteButton
+{
+    [deleteClassifierWindow makeKeyAndOrderFront:null];
+}
+- (@action)deleteClassifier:(CPButton)secondDeleteButton
+{
+    var selectedClassifier = [classifierArrayController selectedObjects];
+    [classifierArrayController removeObjects:selectedClassifier];
+    [selectedClassifier makeObjectsPerformSelector:@selector(ensureDeleted)];
+    [deleteClassifierWindow close];
+}
 - (@action)writeSymbolName:(CPTextField)aSender
 /* Write the new symbol for each selected glyph */
 {
@@ -328,6 +300,7 @@ was pressed.*/
         // Careful... should I repeat fetch here?  Shouldn't fetch be done when New or Open
         // is called?  Try it out.
         [classifierGlyphArrayController setContent:[]];
+        [symbolArrayController setContent:[]];
     }
 }
 

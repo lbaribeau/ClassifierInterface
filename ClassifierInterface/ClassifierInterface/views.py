@@ -41,3 +41,7 @@ class ClassifierDetail(generics.RetrieveUpdateDestroyAPIView):
             self.get_object().write_xml(glyphs)
 
         return self.update(request, *args, **kwargs)
+
+    def delete(self, request, pk, *args, **kwargs):
+        self.get_object().delete_xml()
+        return self.destroy(request, *args, **kwargs)  # See class RetrieveUpdateDestroyAPIView

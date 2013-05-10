@@ -172,6 +172,10 @@ class Classifier(models.Model):
         # Returns a string containing each integer separated by spaces:
         # The 'map' call converts to an array of strings, then 'join' into one string
 
+    def delete_xml(self):
+        print "delete_xml being called" + self.classifier_path
+        return os.remove(self.classifier_path)
+
 
 
 ### GAMERA XML AS A DICTIONARY ###
