@@ -77,6 +77,9 @@ class Classifier(models.Model):
             }
             #glyph_dict = glyph.attrib
             glyphs.append(glyph_dict)
+        glyphs.sort(key=lambda glyph: glyph['id_name'])
+            # Note: The client assumes that the glyphs are sorted.
+            # It needs to do so to assign array controllers to each symbol.
         return glyphs
 
     def _create_new_xml(self):

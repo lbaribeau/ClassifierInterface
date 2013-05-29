@@ -1,6 +1,10 @@
 @import "../Models/Classifier.j"
 @import "../Models/Symbol.j"
 @import "../Delegates/OpenClassifierTableViewDelegate.j"
+@import "../Delegates/ClassifierTableViewDelegate.j"
+@import "../Models/SymbolCollection.j"
+@import "../Views/PhotoView.j"
+
 
 @implementation ClassifierController : CPObject
 {
@@ -24,9 +28,13 @@
     @outlet CPArrayController classifierGlyphArrayController;
     @outlet CPCollectionView cv;
             CPArray imageList;
-    @outlet CPTableView tv;
 
     @outlet CPArrayController symbolArrayController;
+
+    @outlet ClassifierTableViewDelegate classifierTableViewDelegate;
+    @outlet CPTableView classifierTableView;
+    @outlet CPArrayController symbolCollectionArrayController;
+
 
     // Not currently used.
     @outlet LoadClassifiersDelegate loadClassifiersDelegate;
@@ -178,14 +186,123 @@ was pressed.*/
     //                          toObject:classifierGlyphArrayController
     //                          withKeyPath:@""]
 
-    [self setUpCollectionView];
+    // [self setUpCollectionView];  // Gives pngData error since I changed PhotoView
     console.log(cv);
+
+    // [mainClassifierTableView setDelegate:mainClassifierTableViewDelegate];
+    // [mainClassifierTableView bind:@"content"
+    //                          //toObject:symbolCollectionArrayController
+    //                          toObject:classifierGlyphArrayController
+    //                          withKeyPath:@"arrangedObjects"
+    //                          options:nil];
+
+    // NOPE: I need to split my array into sub arrays.  It'd be nice to do
+    // so without copying, but regardless, I need more arrays!  I can do that here
+    // Actually, this is correct.  The tvDelegate can do the array controllers.
+
+    // ----------- Do it with my own classifier
+    var classifier = {"name": "classifier0",
+                "glyphs": [
+                    {"idName": "clef.c",
+// add a few fields... and fix the scrolling problems
+                    "pngData":
+                    //"iVBORw0KGgoAAAANSUhEUgAAAB4AAAB8CAAAAABbZ18vAAAA6klEQVR4nOXVURLDIAgE0L3/pWlNkyq4gJnGmk79fWvGoAOQslCWkIUDqRbGCFN9MuLdiLxhFjjDfcCwDXSsA4TbQK0adc5I+Ai4/ArQo/0FJ2WZUzX/OVzAU09+fw49Yszkz442/FJZSHEfMMw6XMuSsA4QbgPNhQpxzmq4MG6cslim2/uae7u/wRji+gun5ljCF4y5hJEwEkbCdQo6PNhTXWZXYnwi4768sixRt948/jH8aNWWPsWlLzW58tH5XRstY9Wou4/XRhWzbd/7uBEeIKymqP24cs5qSPrushim2+/J79jGDoo8AHJPmKBXfH7NAAAAAElFTkSuQmCC"
+                    [CPData dataWithBase64:"iVBORw0KGgoAAAANSUhEUgAAAB4AAAB8CAAAAABbZ18vAAAA6klEQVR4nOXVURLDIAgE0L3/pWlNkyq4gJnGmk79fWvGoAOQslCWkIUDqRbGCFN9MuLdiLxhFjjDfcCwDXSsA4TbQK0adc5I+Ai4/ArQo/0FJ2WZUzX/OVzAU09+fw49Yszkz442/FJZSHEfMMw6XMuSsA4QbgPNhQpxzmq4MG6cslim2/uae7u/wRji+gun5ljCF4y5hJEwEkbCdQo6PNhTXWZXYnwi4768sixRt948/jH8aNWWPsWlLzW58tH5XRstY9Wou4/XRhWzbd/7uBEeIKymqP24cs5qSPrushim2+/J79jGDoo8AHJPmKBXfH7NAAAAAElFTkSuQmCC"]
+                    }
+                ]},
+        symbolItem = [[SymbolCollection alloc] init],
+        glyph1 = [[Glyph alloc] init],
+        glyph2 = [[Glyph alloc] init],
+        glyph3 = [[Glyph alloc] init];
+    [glyph1 setIdName:classifier.glyphs[0].idName];
+    [glyph2 setIdName:@"clef.f"];
+    [glyph3 setIdName:@"clef.h"]
+    [glyph1 setPngData:classifier.glyphs[0].pngData];
+    [glyph2 setPngData:classifier.glyphs[0].pngData];
+    [glyph3 setPngData:classifier.glyphs[0].pngData];
+    [glyph3 setUlx:471];
+    [glyph3 setUly:297];
+    [glyph3 setNRows:124];
+    [glyph3 setNCols:30];
+    [glyph1 setUlx:471];    [glyph2 setUlx:471];
+    [glyph1 setUly:297];    [glyph2 setUly:297];
+    [glyph1 setNRows:124];  [glyph2 setNRows:124];
+    [glyph1 setNCols:30];   [glyph2 setNCols:30];
+    var glyphArray = [glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,
+    glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,  glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,
+    glyph1, glyph1, glyph2, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3],
+        theClassifier = [[Classifier alloc] init];
+    [theClassifier setGlyphs:glyphArray];
+    [theClassifier setName:@"MyClassifier"];
+
+    // ---------------------- ClassifierTableViewSetup --------------------
+    // Now make a symbol collection array.
+    // It is used by the ClassifierTableView, and is necessary because we need an array where each index corresponds to a row in the table.
+    // TODO: Move this to be a method of ClassifierTableViewDelegate.j
+
+    // [classifierTableViewDelegate _initializeSymbolCollections];
+
+    var i = 0,
+        glyphs = [theClassifier glyphs],
+        glyphs_count = [[theClassifier glyphs] count],
+        symbolCollectionArray = [[CPMutableArray alloc] init];
+    while (i < glyphs_count)
+    // Assume the glyphs are sorted by id name.
+    // Make an array for each id name.
+    {
+        var symbolCollection = [[SymbolCollection alloc] init],
+            symbolName = [glyphs[i] idName],
+            maxRows = 0,
+            maxCols = 0;
+        [symbolCollection setSymbolName:symbolName];
+        for (; i < glyphs_count && [glyphs[i] idName] == symbolName; ++i)
+        {
+            if ([glyphs[i] nRows] > maxRows)
+                maxRows = [glyphs[i] nRows];
+            if ([glyphs[i] nCols] > maxCols)
+                maxCols = [glyphs[i] nCols];
+            // [symbolCollection addImage:[[CPImage alloc] initWithData:[glyphs[i] pngData]]];
+            [symbolCollection addGlyph:glyphs[i]];
+            // Maybe maxRows and maxCols aren't necessary?  True, but regardless it's good to assemble them now.
+        }
+        [symbolCollection setMaxRows:maxRows];
+        [symbolCollection setMaxCols:maxCols];
+        [symbolCollectionArray addObject:symbolCollection];
+    }
+    // var symbolCollectionArrayController = [[CPArrayController alloc] init];
+    // symbolCollectionArrayController = [[CPArrayController alloc] init];
+    [symbolCollectionArrayController setContent:symbolCollectionArray];
+    [classifierTableView setDelegate:classifierTableViewDelegate];
+    // [classifierTableView bind:@"content"  // Shouldn't need this binding...
+    //     toObject:symbolCollectionArrayController
+    //     withKeyPath:@"arrangedObjects"
+    //     options:nil];
+    // Opting to give the delegate the symbolArrayController so it can be a data source
+    [classifierTableView setDataSource:classifierTableViewDelegate];  // This should help set the row height, because I need access to the model before the binding sets objectValue
+    // [classifierTableView bind:@"content"  // Shouldn't need this binding...
+    //     toObject:symbolCollectionArrayController
+    //     withKeyPath:@"arrangedObjects"
+    //     options:nil];
+    // --------------- End ClassifierTableViewSetup -----------------------
+    // console.log(symbolCollectionArrayController);
+    // console.log(classifierTableView);
+    // [classifierTableView reloadData];
+    console.log(symbolCollectionArrayController);
 
     [self _initializeSymbols];
 }
 - (void)_initializeSymbols
 {
     // Loop through all glyphs and build an array of symbols.
+
+    // The symbols are used for the left sidebar view.
 
     // (Shouldn't the server do this?  Yeah.  Even if there aren't
     // symbols in the xml, it should send them as JSON.  Then the client
@@ -351,7 +468,9 @@ was pressed.*/
     }
     [cv setContent:imageList];
     [cv setBackgroundColor:[CPColor blueColor]];
-    [tv setBackgroundColor:[CPColor clearColor]];
+
+    //[tv setBackgroundColor:[CPColor clearColor]];
+
     //[tv setHeadverView:cv];
 
     // I would prefer if I didn't have to make a pile of CPImages but there's no other way
@@ -422,34 +541,34 @@ was pressed.*/
 }
 @end
 
-@implementation PhotoView : CPImageView
-/*
-PhotoView implements functions required by the collection view
-(setSelected and setRepresented)
-see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
-*/
-{
-    CPImageView _imageView;
-}
-- (void)setSelected:(BOOL)isSelected
-{
-    [self setBackgroundColor:isSelected ? [CPColor grayColor] : nil];
-}
-- (void)setRepresentedObject:(id)anObject
-{
-    if (!_imageView)
-    {
-        var frame = CGRectInset([self bounds], 5.0, 5.0);
+// @implementation PhotoView : CPImageView
+// /*
+// PhotoView implements functions required by the collection view
+// (setSelected and setRepresented)
+// see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
+// */
+// {
+//     CPImageView _imageView;
+// }
+// - (void)setSelected:(BOOL)isSelected
+// {
+//     [self setBackgroundColor:isSelected ? [CPColor grayColor] : nil];
+// }
+// - (void)setRepresentedObject:(id)anObject
+// {
+//     if (!_imageView)
+//     {
+//         var frame = CGRectInset([self bounds], 5.0, 5.0);
 
-        _imageView = [[CPImageView alloc] initWithFrame:frame];
+//         _imageView = [[CPImageView alloc] initWithFrame:frame];
 
-        [_imageView setImageScaling:CPScaleProportionally];
-        [_imageView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
+//         [_imageView setImageScaling:CPScaleProportionally];
+//         [_imageView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
 
-        [self addSubview:_imageView];
-    }
+//         [self addSubview:_imageView];
+//     }
 
-    [_imageView setImage:anObject];
-}
-@end
+//     [_imageView setImage:anObject];
+// }
+// @end
 
