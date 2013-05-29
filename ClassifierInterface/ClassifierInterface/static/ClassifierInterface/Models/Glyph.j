@@ -55,7 +55,7 @@
                 //console.log([CPData dataWithBase64:jsonObject[serverKey]]);  // decoded Json
             }
             // Convert to integer?  I _will_ because I don't think it's important to keep the same characters
-            // (1.00000 may change to 1)
+            // (1.00000 will change to 1)
             else if (objectKey === 'ulx' || objectKey === 'uly' ||
                      objectKey === 'nRows' || objectKey === 'nCols' ||
                      objectKey === 'featureScaling' || objectKey === 'idConfidence')

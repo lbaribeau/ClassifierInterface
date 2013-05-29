@@ -1,6 +1,7 @@
 @import "../Views/PhotoView.j"
 @import "../Views/ViewWithObjectValue.j"
 @import "../Models/SymbolCollection.j"
+@import "../Models/Classifier.j"
 
 @implementation ClassifierTableViewDelegate : CPObject
 {
@@ -19,6 +20,40 @@
     // [[CPNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewContentBoundsDidChange:) name:CPViewBoundsDidChangeNotification object:self.scrollView.contentView];
     // For now, add the label...
     return self;
+}
+
+- (void)initializeSymbolCollections:(Classifier)aClassifier
+{
+    var i = 0,
+        glyphs = [aClassifier glyphs],
+        glyphs_count = [[aClassifier glyphs] count],
+        symbolCollectionArray = [[CPMutableArray alloc] init];
+    while (i < glyphs_count)
+    // Assume the glyphs are sorted by id name.
+    // Make an array for each id name.
+    {
+        var symbolCollection = [[SymbolCollection alloc] init],
+            symbolName = [glyphs[i] idName],
+            maxRows = 0,
+            maxCols = 0;
+        [symbolCollection setSymbolName:symbolName];
+        for (; i < glyphs_count && [glyphs[i] idName] == symbolName; ++i)
+        {
+            if ([glyphs[i] nRows] > maxRows)
+                maxRows = [glyphs[i] nRows];
+            if ([glyphs[i] nCols] > maxCols)
+                maxCols = [glyphs[i] nCols];
+            // [symbolCollection addImage:[[CPImage alloc] initWithData:[glyphs[i] pngData]]];
+            [symbolCollection addGlyph:glyphs[i]];
+            // Maybe maxRows and maxCols aren't necessary?  True, but regardless it's good to assemble them now.
+        }
+        [symbolCollection setMaxRows:maxRows];
+        [symbolCollection setMaxCols:maxCols];
+        [symbolCollectionArray addObject:symbolCollection];
+    }
+    // var symbolCollectionArrayController = [[CPArrayController alloc] init];
+    // symbolCollectionArrayController = [[CPArrayController alloc] init];
+    [symbolCollectionArrayController setContent:symbolCollectionArray];
 }
 - (CPView)tableView:(CPTableView)aTableView viewForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // Return a view for the TableView to use a cell of the table.
@@ -285,7 +320,7 @@
         cv = [[CPCollectionView alloc] initWithFrame:CGRectMakeZero()];
     // [cv setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable | CPViewMinXMargin | CPViewMaxXMargin | CPViewMaxYMargin];
     console.log("model: ");
-    console.log(model);  // Why are you a symbol??
+    console.log(model);  // SymbolCollection
     [cv setAutoresizesSubviews:NO];
     [cv setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable | CPViewMinXMargin | CPViewMaxXMargin | CPViewMaxYMargin];
     [cv setMinItemSize:CGSizeMake(0,0)];  // Aha!  Now that the PhotoView has a frame, this works.  (the size isn't determined by this.)

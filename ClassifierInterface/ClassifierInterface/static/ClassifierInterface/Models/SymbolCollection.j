@@ -10,6 +10,8 @@
     self = [super init];
     [self setSymbolName:@""];
     [self setGlyphList:[[CPMutableArray alloc] init]];  // Mutable gives you addObject
+    [self setMaxRows:0];
+    [self setMaxCols:0];
     return self;
 }
 - (void)addGlyph:(Glyph)glyph
