@@ -29,5 +29,4 @@
     else
         return @"/classifiers/";
 }
-
 @end

@@ -228,6 +228,10 @@ was pressed.*/
     [glyph1 setUly:297];    [glyph2 setUly:297];
     [glyph1 setNRows:124];  [glyph2 setNRows:124];
     [glyph1 setNCols:30];   [glyph2 setNCols:30];
+    console.log("COMPARE GLYPHS");
+    console.log([theClassifier glyphs][0]);
+    console.log([[theClassifier glyphs][0] nRows]);
+    console.log(parseInt([[theClassifier glyphs][0] nRows]));
     var glyphArray = [glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,
     glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,  glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1, glyph1,
     glyph1, glyph1, glyph2, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
@@ -237,10 +241,15 @@ was pressed.*/
     glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
     glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
     glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
-    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3],
+    glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3, glyph3,
+    // glyph3],
+    [theClassifier glyphs][1]],
         theClassifier = [[Classifier alloc] init];
     [theClassifier setGlyphs:glyphArray];
     [theClassifier setName:@"MyClassifier"];
+    console.log([theClassifier glyphs][0]);
+    console.log("COMPARE THECLASSIFIER TO:");
+    console.log(theClassifier);
 
     // ---------------------- ClassifierTableViewSetup --------------------
     // Now make a symbol collection array.

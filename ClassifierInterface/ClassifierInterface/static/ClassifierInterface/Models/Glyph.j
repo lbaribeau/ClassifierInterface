@@ -46,13 +46,21 @@
             var objectKey = map[i][0],
                 serverKey = map[i][1];
 
-            if (serverKey === 'data')
+            if (objectKey === 'pngData')
             {
                 [self setValue:[CPData dataWithBase64:jsonObject[serverKey]] forKey:objectKey];
 
                 //console.log("How is the data represented anyway.  Do I need to decode AND encode?");
                 //console.log(jsonObject[serverKey]);  // data field of Json (base64)
                 //console.log([CPData dataWithBase64:jsonObject[serverKey]]);  // decoded Json
+            }
+            // Convert to integer?  I _will_ because I don't think it's important to keep the same characters
+            // (1.00000 may change to 1)
+            else if (objectKey === 'ulx' || objectKey === 'uly' ||
+                     objectKey === 'nRows' || objectKey === 'nCols' ||
+                     objectKey === 'featureScaling' || objectKey === 'idConfidence')
+            {
+                [self setValue:parseInt(jsonObject[serverKey]) forKey:objectKey];
             }
             else
             {
@@ -97,7 +105,7 @@
             {
                 JsonObject[serverKey] = aGlyphArray[i][objectKey];
             }
-            else
+            else  //TODO: ensure that 'save' doesn't require the members to be converted to strings.
             {
                 JsonObject[serverKey] = [aGlyphArray[i][objectKey] base64];
             }
