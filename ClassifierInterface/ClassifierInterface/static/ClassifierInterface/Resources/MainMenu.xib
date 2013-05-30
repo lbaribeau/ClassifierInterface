@@ -1637,10 +1637,10 @@
 			<object class="NSCustomObject" id="286776622">
 				<string key="NSClassName">OpenClassifierTableViewDelegate</string>
 			</object>
-			<object class="NSCustomObject" id="44817816">
+			<object class="NSCustomObject" id="405758934">
 				<string key="NSClassName">ClassifierTableViewDelegate</string>
 			</object>
-			<object class="NSArrayController" id="120686900">
+			<object class="NSArrayController" id="250001854">
 				<bool key="NSEditable">YES</bool>
 				<object class="_NSManagedProxy" key="_NSManagedProxy"/>
 				<bool key="NSAvoidsEmptySelection">YES</bool>
@@ -1927,14 +1927,6 @@
 					<int key="connectionID">963</int>
 				</object>
 				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">symbolArrayController</string>
-						<reference key="source" ref="328541566"/>
-						<reference key="destination" ref="994409641"/>
-					</object>
-					<int key="connectionID">965</int>
-				</object>
-				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
 						<string key="label">deleteClassifier:</string>
 						<reference key="source" ref="328541566"/>
@@ -1978,17 +1970,9 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">classifierTableViewDelegate</string>
 						<reference key="source" ref="328541566"/>
-						<reference key="destination" ref="44817816"/>
+						<reference key="destination" ref="405758934"/>
 					</object>
 					<int key="connectionID">1021</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">symbolCollectionArrayController</string>
-						<reference key="source" ref="328541566"/>
-						<reference key="destination" ref="120686900"/>
-					</object>
-					<int key="connectionID">1024</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
@@ -1997,6 +1981,14 @@
 						<reference key="destination" ref="722107209"/>
 					</object>
 					<int key="connectionID">1042</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">symbolOutlineDelegate</string>
+						<reference key="source" ref="328541566"/>
+						<reference key="destination" ref="357836260"/>
+					</object>
+					<int key="connectionID">1043</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
@@ -2123,6 +2115,14 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
+						<string key="label">symbolArrayController</string>
+						<reference key="source" ref="357836260"/>
+						<reference key="destination" ref="994409641"/>
+					</object>
+					<int key="connectionID">1044</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
 						<string key="label">textField</string>
 						<reference key="source" ref="800125889"/>
 						<reference key="destination" ref="333018147"/>
@@ -2220,10 +2220,18 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">symbolCollectionArrayController</string>
-						<reference key="source" ref="44817816"/>
-						<reference key="destination" ref="120686900"/>
+						<reference key="source" ref="405758934"/>
+						<reference key="destination" ref="250001854"/>
 					</object>
 					<int key="connectionID">1041</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">theTableView</string>
+						<reference key="source" ref="405758934"/>
+						<reference key="destination" ref="722107209"/>
+					</object>
+					<int key="connectionID">1045</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -3102,12 +3110,12 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">1020</int>
-						<reference key="object" ref="44817816"/>
+						<reference key="object" ref="405758934"/>
 						<reference key="parent" ref="0"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">1023</int>
-						<reference key="object" ref="120686900"/>
+						<reference key="object" ref="250001854"/>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">Symbol Collection Array Controller</string>
 					</object>
@@ -3420,7 +3428,7 @@
 				<reference key="dict.values" ref="0"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">1042</int>
+			<int key="maxID">1045</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3573,8 +3581,7 @@
 							<string>openClassifierWindow</string>
 							<string>saveClassifierDelegate</string>
 							<string>statusLabel</string>
-							<string>symbolArrayController</string>
-							<string>symbolCollectionArrayController</string>
+							<string>symbolOutlineDelegate</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -3598,8 +3605,7 @@
 							<string>NSWindow</string>
 							<string>SaveClassifierDelegate</string>
 							<string>NSTextField</string>
-							<string>NSArrayController</string>
-							<string>NSArrayController</string>
+							<string>SymbolOutlineDelegate</string>
 						</object>
 					</object>
 					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
@@ -3626,8 +3632,7 @@
 							<string>openClassifierWindow</string>
 							<string>saveClassifierDelegate</string>
 							<string>statusLabel</string>
-							<string>symbolArrayController</string>
-							<string>symbolCollectionArrayController</string>
+							<string>symbolOutlineDelegate</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -3712,12 +3717,8 @@
 								<string key="candidateClassName">NSTextField</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">symbolArrayController</string>
-								<string key="candidateClassName">NSArrayController</string>
-							</object>
-							<object class="IBToOneOutletInfo">
-								<string key="name">symbolCollectionArrayController</string>
-								<string key="candidateClassName">NSArrayController</string>
+								<string key="name">symbolOutlineDelegate</string>
+								<string key="candidateClassName">SymbolOutlineDelegate</string>
 							</object>
 						</object>
 					</object>
@@ -3729,56 +3730,17 @@
 				<object class="IBPartialClassDescription">
 					<string key="className">ClassifierTableViewDelegate</string>
 					<string key="superclassName">NSObject</string>
-					<object class="NSMutableDictionary" key="actions">
-						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="NSArray" key="dict.sortedKeys">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>printCv:</string>
-							<string>printViewForFirstRow:</string>
-							<string>printWindow:</string>
-						</object>
-						<object class="NSArray" key="dict.values">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>id</string>
-							<string>id</string>
-							<string>id</string>
-						</object>
-					</object>
-					<object class="NSMutableDictionary" key="actionInfosByName">
-						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="NSArray" key="dict.sortedKeys">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>printCv:</string>
-							<string>printViewForFirstRow:</string>
-							<string>printWindow:</string>
-						</object>
-						<object class="NSArray" key="dict.values">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<object class="IBActionInfo">
-								<string key="name">printCv:</string>
-								<string key="candidateClassName">id</string>
-							</object>
-							<object class="IBActionInfo">
-								<string key="name">printViewForFirstRow:</string>
-								<string key="candidateClassName">id</string>
-							</object>
-							<object class="IBActionInfo">
-								<string key="name">printWindow:</string>
-								<string key="candidateClassName">id</string>
-							</object>
-						</object>
-					</object>
 					<object class="NSMutableDictionary" key="outlets">
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>symbolCollectionArrayController</string>
-							<string>theWindow</string>
+							<string>theTableView</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>NSArrayController</string>
-							<string>NSWindow</string>
+							<string>NSTableView</string>
 						</object>
 					</object>
 					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
@@ -3786,7 +3748,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>symbolCollectionArrayController</string>
-							<string>theWindow</string>
+							<string>theTableView</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -3795,8 +3757,8 @@
 								<string key="candidateClassName">NSArrayController</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">theWindow</string>
-								<string key="candidateClassName">NSWindow</string>
+								<string key="name">theTableView</string>
+								<string key="candidateClassName">NSTableView</string>
 							</object>
 						</object>
 					</object>
@@ -3927,12 +3889,14 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>scrollView</string>
+							<string>symbolArrayController</string>
 							<string>textColumn</string>
 							<string>theOutlineView</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>NSScrollView</string>
+							<string>NSArrayController</string>
 							<string>NSTableColumn</string>
 							<string>NSOutlineView</string>
 						</object>
@@ -3942,6 +3906,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>scrollView</string>
+							<string>symbolArrayController</string>
 							<string>textColumn</string>
 							<string>theOutlineView</string>
 						</object>
@@ -3950,6 +3915,10 @@
 							<object class="IBToOneOutletInfo">
 								<string key="name">scrollView</string>
 								<string key="candidateClassName">NSScrollView</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">symbolArrayController</string>
+								<string key="candidateClassName">NSArrayController</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">textColumn</string>

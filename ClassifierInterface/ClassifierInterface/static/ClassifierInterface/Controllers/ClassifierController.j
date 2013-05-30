@@ -2,7 +2,7 @@
 @import "../Models/Symbol.j"
 @import "../Delegates/OpenClassifierTableViewDelegate.j"
 @import "../Delegates/ClassifierTableViewDelegate.j"
-@import "../Models/SymbolCollection.j"
+// @import "../Models/SymbolCollection.j"
 @import "../Views/PhotoView.j"
 
 
@@ -29,11 +29,11 @@
     @outlet CPCollectionView cv;
             CPArray imageList;
 
-    @outlet CPArrayController symbolArrayController;
+    @outlet SymbolOutlineDelegate symbolOutlineDelegate;
 
     @outlet ClassifierTableViewDelegate classifierTableViewDelegate;
     @outlet CPTableView classifierTableView;
-    @outlet CPArrayController symbolCollectionArrayController;
+    // @outlet CPArrayController symbolCollectionArrayController;  // do close, and then keep deleting comments
 
 
     // Not currently used.
@@ -41,9 +41,6 @@
     @outlet SaveClassifierDelegate saveClassifierDelegate;
 
 }
-
-// applicationDidFinishLaunching didn't get called... weird
-// Seems to only work on AppController.
 - (void)awakeFromCib
 {
     [newClassifierTextfield setDelegate:newClassifierTextfieldDelegate];
@@ -51,12 +48,6 @@
     [newClassifierWindow setDefaultButton:createButton];
     [openClassifierWindow setDefaultButton:openButton];
     [openClassifierTableView setDelegate:openClassifierTableViewDelegate];
-
-
-    // I used to set up actions of all of the buttons here, but then
-    // I figured out how to do it in XCode:
-    //  cancel buttons send an action to the windows' close function
-    //  other buttons connect to classifierController functions.
 }
 
 - (@action)new:(CPMenuItem)aSender
@@ -77,9 +68,9 @@
     [newClassifierWindow makeKeyAndOrderFront:null];
 }
 - (CPString)suggestNameForNewClassifier
-/* Comes up with a suggestion for the user to name the new classifier.
-Default suggestion is classifier0.
-Expects classifierArrayController to have been populated.*/
+// Comes up with a suggestion for the user to name the new classifier.
+// Default suggestion is classifier0.
+// Expects classifierArrayController to have been populated.
 {
     var i = 0,
         classifierCount = [[classifierArrayController contentArray] count];
@@ -187,142 +178,17 @@ was pressed.*/
     //                          withKeyPath:@""]
 
     // [self setUpCollectionView];  // Gives pngData error since I changed PhotoView
-    console.log(cv);
-
-    // [mainClassifierTableView setDelegate:mainClassifierTableViewDelegate];
-    // [mainClassifierTableView bind:@"content"
-    //                          //toObject:symbolCollectionArrayController
-    //                          toObject:classifierGlyphArrayController
-    //                          withKeyPath:@"arrangedObjects"
-    //                          options:nil];
-
-    // NOPE: I need to split my array into sub arrays.  It'd be nice to do
-    // so without copying, but regardless, I need more arrays!  I can do that here
-    // Actually, this is correct.  The tvDelegate can do the array controllers.
-
-    // ---------------------- ClassifierTableViewSetup --------------------
-    // Now make a symbol collection array.
-    // It is used by the ClassifierTableView, and is necessary because we need an array where each index corresponds to a row in the table.
-    // TODO: Move this to be a method of ClassifierTableViewDelegate.j
 
     [classifierTableViewDelegate initializeSymbolCollections:theClassifier];
-
-    // var i = 0,
-    //     glyphs = [theClassifier glyphs],
-    //     glyphs_count = [[theClassifier glyphs] count],
-    //     symbolCollectionArray = [[CPMutableArray alloc] init];
-    // while (i < glyphs_count)
-    // // Assume the glyphs are sorted by id name.
-    // // Make an array for each id name.
-    // {
-    //     var symbolCollection = [[SymbolCollection alloc] init],
-    //         symbolName = [glyphs[i] idName],
-    //         maxRows = 0,
-    //         maxCols = 0;
-    //     [symbolCollection setSymbolName:symbolName];
-    //     for (; i < glyphs_count && [glyphs[i] idName] == symbolName; ++i)
-    //     {
-    //         if ([glyphs[i] nRows] > maxRows)
-    //             maxRows = [glyphs[i] nRows];
-    //         if ([glyphs[i] nCols] > maxCols)
-    //             maxCols = [glyphs[i] nCols];
-    //         // [symbolCollection addImage:[[CPImage alloc] initWithData:[glyphs[i] pngData]]];
-    //         [symbolCollection addGlyph:glyphs[i]];
-    //         // Maybe maxRows and maxCols aren't necessary?  True, but regardless it's good to assemble them now.
-    //     }
-    //     [symbolCollection setMaxRows:maxRows];
-    //     [symbolCollection setMaxCols:maxCols];
-    //     [symbolCollectionArray addObject:symbolCollection];
-    // }
-    // // var symbolCollectionArrayController = [[CPArrayController alloc] init];
-    // // symbolCollectionArrayController = [[CPArrayController alloc] init];
-    // [symbolCollectionArrayController setContent:symbolCollectionArray];
-    // [classifierTableView setDelegate:classifierTableViewDelegate];
-    // // [classifierTableView bind:@"content"  // Shouldn't need this binding...
-    // //     toObject:symbolCollectionArrayController
-    // //     withKeyPath:@"arrangedObjects"
-    // //     options:nil];
-    // // Opting to give the delegate the symbolArrayController so it can be a data source
-    // [classifierTableView setDataSource:classifierTableViewDelegate];  // This should help set the row height, because I need access to the model before the binding sets objectValue
-    // // [classifierTableView bind:@"content"  // Shouldn't need this binding...
-    // //     toObject:symbolCollectionArrayController
-    // //     withKeyPath:@"arrangedObjects"
-    // //     options:nil];
-    // // --------------- End ClassifierTableViewSetup -----------------------
-    // // console.log(symbolCollectionArrayController);
-    // // console.log(classifierTableView);
-    // // [classifierTableView reloadData];
-    // console.log(symbolCollectionArrayController);
-
     [classifierTableView setDelegate:classifierTableViewDelegate];
     // [classifierTableView bind:@"content"  // Shouldn't need this binding...
     //     toObject:symbolCollectionArrayController
     //     withKeyPath:@"arrangedObjects"
     //     options:nil];
-    // Opting to give the delegate the symbolArrayController so it can be a data source
-    [classifierTableView setDataSource:classifierTableViewDelegate];  // This should help set the row height, because I need access to the model before the binding sets objectValue
-    // [classifierTableView bind:@"content"  // Shouldn't need this binding...
-    //     toObject:symbolCollectionArrayController
-    //     withKeyPath:@"arrangedObjects"
-    //     options:nil];
-    // --------------- End ClassifierTableViewSetup -----------------------
-    // console.log(symbolCollectionArrayController);
-    // console.log(classifierTableView);
-    // [classifierTableView reloadData];
-    console.log(symbolCollectionArrayController);
+    [classifierTableView setDataSource:classifierTableViewDelegate];
 
-    [self _initializeSymbols];
-}
-- (void)_initializeSymbols
-{
-    // Loop through all glyphs and build an array of symbols.
-
-    // The symbols are used for the left sidebar view.
-
-    // (Shouldn't the server do this?  Yeah.  Even if there aren't
-    // symbols in the xml, it should send them as JSON.  Then the client
-    // can maintain the array any time things are changed.)
-    // Well... that doesn't help because the list of symbols doesn't
-    // tell you the counts.  Add that to the XML?  Or just not depend on
-    // that?  I think the latter is superior.  (slower but more robust)
-    // Either way we will need this code because we need to support the case
-    // where the server doesn't have a symbol list.
-    var i = 0,
-        glyphArray = [theClassifier glyphs],
-        glyphCount = [glyphArray count],
-        j = 0;
-
-    [symbolArrayController setContent:[]];  // This is necessary if the user didn't 'close'
-    for (; i < glyphCount; ++i)
-    {
-        var newSymbol = [[Symbol alloc] init:[glyphArray[i] idName]],
-        //var found = [self reverseArrayContains:[symbolArrayController contentArray]:newSymbol];
-            found = [self reverseArrayContains:[symbolArrayController contentArray] item:newSymbol];
-        if (found < 0)
-        {
-            [symbolArrayController addObject:newSymbol];
-        }
-        else
-        {
-            [[symbolArrayController contentArray][found] increment];
-        }
-    }
-    console.log([symbolArrayController contentArray]);
-}
-- (int)reverseArrayContains:(CPArray)array item:(id)thing
-/* Intuitive except:
- - starts searching at the end
- - isEqual must be defined */
-{
-    var i = [array count];
-    for (; i >= 0; --i)
-    {
-        if ([array[i] isEqual:thing])
-        {
-            return i;
-        }
-    }
-    return -1;
+    // [self _initializeSymbols];
+    [symbolOutlineDelegate initializeSymbols:theClassifier];
 }
 - (@action)showAreYouSureWindow:(CPButton)firstDeleteButton
 {
@@ -392,7 +258,8 @@ was pressed.*/
         // Careful... should I repeat fetch here?  Shouldn't fetch be done when New or Open
         // is called?  Try it out.
         [classifierGlyphArrayController setContent:[]];
-        [symbolArrayController setContent:[]];
+        [symbolOutlineDelegate close];
+        [classifierTableViewDelegate close];
     }
 }
 
