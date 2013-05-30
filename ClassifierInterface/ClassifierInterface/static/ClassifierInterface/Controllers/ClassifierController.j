@@ -2,8 +2,8 @@
 @import "../Models/Symbol.j"
 @import "../Delegates/OpenClassifierTableViewDelegate.j"
 @import "../Delegates/ClassifierTableViewDelegate.j"
-// @import "../Models/SymbolCollection.j"
-@import "../Views/PhotoView.j"
+@import "../Delegates/SymbolTableDelegate.j"
+@import "../Views/PhotoView.j"  // For the saved collection view
 
 
 @implementation ClassifierController : CPObject
@@ -29,7 +29,7 @@
     @outlet CPCollectionView cv;
             CPArray imageList;
 
-    @outlet SymbolOutlineDelegate symbolOutlineDelegate;
+    @outlet SymbolTableDelegate symbolTableDelegate;
 
     @outlet ClassifierTableViewDelegate classifierTableViewDelegate;
     @outlet CPTableView classifierTableView;
@@ -176,6 +176,8 @@ was pressed.*/
     //[classifierGlyphTableView bind:@"content"
     //                          toObject:classifierGlyphArrayController
     //                          withKeyPath:@""]
+    // I'm not sure that the classifierGlyphArrayController gets used at all, as I
+    // don't have a view for which there is one view per glyph.
 
     // [self setUpCollectionView];  // Gives pngData error since I changed PhotoView
 
@@ -188,7 +190,7 @@ was pressed.*/
     [classifierTableView setDataSource:classifierTableViewDelegate];
 
     // [self _initializeSymbols];
-    [symbolOutlineDelegate initializeSymbols:theClassifier];
+    [symbolTableDelegate initializeSymbols:theClassifier];
 }
 - (@action)showAreYouSureWindow:(CPButton)firstDeleteButton
 {
@@ -254,7 +256,7 @@ was pressed.*/
         theClassifier = null;
 
         [classifierGlyphArrayController setContent:[]];
-        [symbolOutlineDelegate close];
+        [symbolTableDelegate close];
         [classifierTableViewDelegate close];
     }
 }
