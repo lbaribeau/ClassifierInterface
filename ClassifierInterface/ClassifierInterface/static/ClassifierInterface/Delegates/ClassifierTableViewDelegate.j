@@ -18,8 +18,6 @@
     [self setPhotoViewInset:10];
     // [[CPNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewContentBoundsDidChange:) name:CPViewBoundsDidChangeNotification object:self.scrollView.contentView];
     [self setCvArrayControllers:[[CPArray alloc] init]];
-        // These arrays should be given enough capacity as the symbolCollections are assembled, because it's important for their indexes
-        // to correspond to the rows of the table.
     return self;
 }
 
@@ -50,19 +48,17 @@
         [symbolCollection setMaxCols:maxCols];
         [symbolCollectionArray addObject:symbolCollection];
     }
-    // var symbolCollectionArrayController = [[CPArrayController alloc] init];
     [symbolCollectionArrayController setContent:symbolCollectionArray];
     var nSymbols = [[symbolCollectionArrayController contentArray] count];
     [cvArrayControllers initWithCapacity:nSymbols];
     for (var j = 0; j < nSymbols; ++j)
     {
-        // cvArrayControllers[j] = [[CPArrayController alloc] init];
         cvArrayControllers[j] = [[CPArrayController alloc] init];
         [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];
     }
     console.log("selection indexes initialized:");
-    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
+    console.log([cvArrayControllers[0] selectionIndexes]);
 }
 - (void)close
 {
@@ -136,26 +132,11 @@
     [parentView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable | CPViewMinXMargin | CPViewMaxXMargin | CPViewMaxYMargin];
     [aView addSubview:parentView];
     [parentView setFrame:CGRectMake(0, [self headerLabelHeight], CGRectGetWidth([aView bounds]), CGRectGetHeight([aView bounds]) - [self headerLabelHeight])];
-    // var cvArrayController = [[CPArrayController alloc] init];
-    // [cvArrayControllerDict setObject:cvArrayController forKey:symbolName];
-    // [cvArrayControllers insertObject:cvArrayController atIndex:aRow];
-    // var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
     var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayControllers[aRow] parentView:parentView row:aRow];
     [cv bind:@"selectionIndexes" toObject:cvArrayControllers[aRow] withKeyPath:@"selectionIndexes" options:nil];
     console.log("cvArrayControllers[aRow selection indexes:");
     console.log([cvArrayControllers[aRow] selectionIndexes]);
     [cv setSelectionIndexes:[cvArrayControllers[aRow] selectionIndexes]];
-    // [cvArrayControllers[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];  // Hopefully won't have one selected at the beginning
-    //  commented: do not want to do this each time the view is displayed (scrolled past)
-    // [collectionViews insertObject:cv atIndex:aRow];  // Do I need this?
-        // Again... there should be an 'if' at the beginning of this that checks if I need a new view!  I probably only need to do this the 1st time the view's displayed...
-        // First make sure that the array controller's working, then explore that.
-    // Hmmm... selection is starting to work.
-    // But I think that I shouldn't make a new collection view every time willDisplayView is called.
-    // Instead, the collection view should (and can) be set up in viewForTableColumn (every since I set up the data source, I haven't moved it.)
-    // On second thought, maybe the collectionView DOES get remade each time.  But the array controller should be pervasive.
-    // -> Set up all the array controllers in initialize.
-
 }
 
 - (void)tableView:(CPTableView)aTableView objectValueForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
@@ -273,21 +254,29 @@
     console.log("Selecting glyphs for row " + aRow + ".");
     // console.log(glyphs);
     // if(! [cvArrayControllers[aRow] setSelectedObjects:glyphs] )
-    if(! [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]] )
+    // if(! [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]] )  // Doesn't work (always the same)
+    // Need to check if all are selected... if so, select none, and if none, select all.
+    // No better way than to loop
+    // var selections =
+    if ([[cvArrayControllers[aRow] selectionIndexes] count] === [[cvArrayControllers[aRow] contentArray] count])
     {
-        console.log("if true");
-        console.log("Selection did not change (all must have been selected.)");
+        // all are selected
+        // console.log("if true");
+        // console.log("Selection did not change (all must have been selected.)");
         [cvArrayControllers[aRow] setSelectedObjects:[]];
         // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
-    else  // deselct isn't working yet!
+    else  // deselect isn't working yet!
     {
-        console.log("else");  // Always else.
+        console.log("else");
         // Telling the collection view to show its selection (aha!  the better way would be to bind its selection to the array controller, which happens in Rodan)
         // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,[[cvArrayControllers[aRow] contentArray] count])]];
+        // [cvArrayControllers[aRow] setSelectedIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,[[cvArrayControllers[aRow] contentArray] count])]];
+        [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]];
     }
     // console.log("Changed selection.  cvArrayController[" + aRow + "]:");
     // console.log(cvArrayControllers[aRow]);
     // console.log(cvArrayControllers);
+    return NO;
 }
 @end
