@@ -6,7 +6,8 @@
 @implementation ClassifierTableViewDelegate : CPObject
 {
     @outlet CPArrayController symbolCollectionArrayController;
-    CPDictionary cvArrayControllerDict @accessors;
+    CPMutableArray collectionViews @accessors;
+    CPMutableArray cvArrayControllers @accessors;
     int headerLabelHeight @accessors;
     int photoViewInset @accessors;
     @outlet CPTableView theTableView;
@@ -17,7 +18,10 @@
     [self setHeaderLabelHeight:20];
     [self setPhotoViewInset:10];
     // [[CPNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewContentBoundsDidChange:) name:CPViewBoundsDidChangeNotification object:self.scrollView.contentView];
-    [self setCvArrayControllerDict:[CPDictionary dictionary]];
+    [self setCollectionViews:[[CPMutableArray alloc] init]];
+    [self setCvArrayControllers:[[CPMutableArray alloc] init]];
+        // These arrays should be given enough capacity as the symbolCollections are assembled, because it's important for their indexes
+        // to correspond to the rows of the table.
     return self;
 }
 
@@ -50,6 +54,9 @@
     }
     // var symbolCollectionArrayController = [[CPArrayController alloc] init];
     [symbolCollectionArrayController setContent:symbolCollectionArray];
+    var nSymbols = [[symbolCollectionArrayController contentArray] count];
+    [collectionViews initWithCapacity:nSymbols];
+    [cvArrayControllers initWithCapacity:nSymbols];
 }
 - (void)close
 {
@@ -113,11 +120,15 @@
     [aView addSubview:parentView];
     [parentView setFrame:CGRectMake(0, [self headerLabelHeight], CGRectGetWidth([aView bounds]), CGRectGetHeight([aView bounds]) - [self headerLabelHeight])];
     var cvArrayController = [[CPArrayController alloc] init];
-    console.log("Adding cvArrayController to cvArrayControllerDict");
-    console.log(cvArrayControllerDict);
-    [cvArrayControllerDict setObject:cvArrayController forKey:symbolName];  // Did this get the right scoped one?? I imagine so although I didn't use self.
-    console.log(cvArrayControllerDict);
-    [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
+    // [cvArrayControllerDict setObject:cvArrayController forKey:symbolName];
+    [cvArrayControllers insertObject:cvArrayController atIndex:aRow];
+    var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
+    [cv bind:@"selectionIndexes" toObject:cvArrayController withKeyPath:@"selectionIndexes" options:nil];
+    [cvArrayController setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];  // Hopefully won't have one selected at the beginning
+    [collectionViews insertObject:cv atIndex:aRow];
+    // Hmmm... selection is starting to work.
+    // But I think that I shouldn't make a new collection view every time willDisplayView is called.
+    // Instead, the collection view should (and can) be set up in viewForTableColumn (every since I set up the data source, I haven't moved it.)
 }
 
 - (void)tableView:(CPTableView)aTableView objectValueForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
@@ -186,6 +197,7 @@
     [cv setMaxItemSize:CGSizeMake(10000, 10000)];
     [cv setDelegate:self];
     [cv setSelectable:YES];
+    [cv setAllowsMultipleSelection:YES];
     var itemPrototype = [[CPCollectionViewItem alloc] init],
         photoView = [[PhotoView alloc] initWithFrame:CGRectMakeZero() andInset:[self photoViewInset]];
     [photoView setBounds:CGRectMake(0,0,[model maxCols],[model maxRows])];
@@ -216,9 +228,28 @@
         // see http://stackoverflow.com/questions/12067018 for other approaches
 }
 // This function will help with selection... find a way to pass the event to the collection view
-// - (void)tableView:(CPTableView)aTableView shouldSelectRow:(int)aRow
-// // Returns the height of a specified row
-// {
-//     return XXXX;
-// }
+- (void)tableView:(CPTableView)aTableView shouldSelectRow:(int)aRow
+// Returns the height of a specified row
+{
+    // var glyphs = [[[aTableView dataSource] tableView:aTableView objectValueForTableColumn:nil row:aRow] glyphList];
+    console.log("Selecting glyphs for row " + aRow + ".");
+    // console.log(glyphs);
+    // if(! [cvArrayControllers[aRow] setSelectedObjects:glyphs] )
+    if(! [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]] )
+    {
+        console.log("if true");
+        console.log("Selection did not change (all must have been selected.)");
+        [cvArrayControllers[aRow] setSelectedObjects:[]];
+        // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+    }
+    else
+    {
+        console.log("else");  // Always else.
+        // Telling the collection view to show its selection (aha!  the better way would be to bind its selection to the array controller, which happens in Rodan)
+        // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,[[cvArrayControllers[aRow] contentArray] count])]];
+    }
+    // console.log("Changed selection.  cvArrayController[" + aRow + "]:");
+    // console.log(cvArrayControllers[aRow]);
+    // console.log(cvArrayControllers);
+}
 @end
