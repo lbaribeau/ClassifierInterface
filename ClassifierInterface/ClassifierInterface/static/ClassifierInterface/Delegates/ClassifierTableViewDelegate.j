@@ -7,7 +7,7 @@
 {
     @outlet CPArrayController symbolCollectionArrayController;
     CPMutableArray collectionViews @accessors;
-    CPMutableArray cvArrayControllers @accessors;
+    CPArray cvArrayControllers @accessors;
     int headerLabelHeight @accessors;
     int photoViewInset @accessors;
     @outlet CPTableView theTableView;
@@ -57,6 +57,11 @@
     var nSymbols = [[symbolCollectionArrayController contentArray] count];
     [collectionViews initWithCapacity:nSymbols];
     [cvArrayControllers initWithCapacity:nSymbols];
+    for (var j = 0; j < nSymbols; ++j)
+    {
+        cvArrayControllers[j] = [[CPArrayController alloc] init];
+        [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];
+    }
 }
 - (void)close
 {
@@ -119,16 +124,23 @@
     [parentView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable | CPViewMinXMargin | CPViewMaxXMargin | CPViewMaxYMargin];
     [aView addSubview:parentView];
     [parentView setFrame:CGRectMake(0, [self headerLabelHeight], CGRectGetWidth([aView bounds]), CGRectGetHeight([aView bounds]) - [self headerLabelHeight])];
-    var cvArrayController = [[CPArrayController alloc] init];
+    // var cvArrayController = [[CPArrayController alloc] init];
     // [cvArrayControllerDict setObject:cvArrayController forKey:symbolName];
-    [cvArrayControllers insertObject:cvArrayController atIndex:aRow];
-    var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
-    [cv bind:@"selectionIndexes" toObject:cvArrayController withKeyPath:@"selectionIndexes" options:nil];
-    [cvArrayController setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];  // Hopefully won't have one selected at the beginning
-    [collectionViews insertObject:cv atIndex:aRow];
+    // [cvArrayControllers insertObject:cvArrayController atIndex:aRow];
+    // var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
+    var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayControllers[aRow] parentView:parentView row:aRow];
+    [cv bind:@"selectionIndexes" toObject:cvArrayControllers[aRow] withKeyPath:@"selectionIndexes" options:nil];
+    // [cvArrayControllers[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];  // Hopefully won't have one selected at the beginning
+    //  commented: do not want to do this each time the view is displayed (scrolled past)
+    [collectionViews insertObject:cv atIndex:aRow];  // Do I need this?
+        // Again... there should be an 'if' at the beginning of this that checks if I need a new view!  I probably only need to do this the 1st time the view's displayed...
+        // First make sure that the array controller's working, then explore that.
     // Hmmm... selection is starting to work.
     // But I think that I shouldn't make a new collection view every time willDisplayView is called.
     // Instead, the collection view should (and can) be set up in viewForTableColumn (every since I set up the data source, I haven't moved it.)
+    // On second thought, maybe the collectionView DOES get remade each time.  But the array controller should be pervasive.
+    // -> Set up all the array controllers in initialize.
+
 }
 
 - (void)tableView:(CPTableView)aTableView objectValueForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
