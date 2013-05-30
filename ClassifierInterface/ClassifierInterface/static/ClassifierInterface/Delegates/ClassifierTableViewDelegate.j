@@ -53,23 +53,25 @@
 }
 - (void)close
 {
-    console.log("Closing symbolCollectionArrayController.");
     [symbolCollectionArrayController setContent:[]];  // Also need to kill all of the subArrays.
       // Also need to unset all of the symbolCollections... the labels are bound to that model, and not through the array controller
       // Maybe the label ought to be bound through the array controller... like with objectValue (via the table's binding)
         // Use a dict of arrays keyed by symbol name.
-    console.log("Emptying dict: ");
-    console.log(cvArrayControllerDict);
-
-    var enumerator = [cvArrayControllerDict objectEnumerator],
-        cvArrayController;
-    while (cvArrayController = [enumerator nextObject])
-    {
-        [cvArrayController setContent:[]];
-    }
-    [cvArrayControllerDict removeAllObjects];
-    console.log(cvArrayControllerDict);
+    // var enumerator = [cvArrayControllerDict objectEnumerator],
+    //     cvArrayController;
+    // while (cvArrayController = [enumerator nextObject])
+    // {
+    //     [cvArrayController setContent:[]];
+    // }
+    // [cvArrayControllerDict removeAllObjects];
     [theTableView reloadData];
+    // Ok.  I didn't even need the cvArrayControllerDict for this.  Wow.
+    // So my first approach was sort of a 'binding' style approach in which I was hoping that the table view would
+    // empty when I killed the content of the array controller.  However, I'm not using binding, I'm using a coded
+    // approach, because of all of the hooplah with the collection view and the row height.  So the best binding
+    // could do would be to empty the coll views and labels, but the tableView would still sort of be there (and the
+    // scroll bar,) so it's much better to just tell the tableView what to do explicitly (reloadData... after erasing
+    // the data).  Side note: the SymbolOutline uses the former approach (binding.)
 }
 
 
@@ -96,9 +98,7 @@
     var symbolCollection = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:aTableColumn row:aRow],
         symbolName = [symbolCollection symbolName],  // If I use binding, I don't need this variable
         label = [[CPTextField alloc] initWithFrame:CGRectMake(0,0,CGRectGetWidth([aView bounds]), [self headerLabelHeight])];
-    // [label setStringValue:symbolName];
-    [label bind:@"value" toObject:symbolCollection withKeyPath:"symbolName" options:nil];  // Try reloading the table as a manner of closing everything off, instead
-        // This binding allows 'close' to erase the content of the label, which isn't possible using setStringValue instead.
+    [label setStringValue:symbolName];
     [label setFont:[CPFont boldSystemFontOfSize:16]];
     [label setAutoresizesSubviews:NO];
     [label setAutoresizingMask:CPViewWidthSizable | CPViewMinXMargin | CPViewMaxXMargin | CPViewMinYMargin];
@@ -123,8 +123,6 @@
 - (void)tableView:(CPTableView)aTableView objectValueForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // (Data source method)
 {
-    console.log("Randomly printing cvArrayControllerDict");
-    console.log(cvArrayControllerDict);
     return [symbolCollectionArrayController arrangedObjects][aRow]; // (Ignoring the column... the table has only one column)
 }
 - (void)numberOfRowsInTableView:(CPTableView)aTableView

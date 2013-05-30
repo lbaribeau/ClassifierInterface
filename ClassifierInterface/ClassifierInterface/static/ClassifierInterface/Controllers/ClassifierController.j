@@ -220,9 +220,6 @@ was pressed.*/
 {
     if (theClassifier)
     {
-        console.log("In save");
-        console.log(theClassifier);
-        //console.log([theClassifier pk]);
         //[WLRemoteAction schedule:WLRemoteActionPutType
         //                path:[theClassifier pk]
         //                delegate:SaveClassifierDelegate
@@ -255,8 +252,7 @@ was pressed.*/
             [statusLabel setStringValue:@"Closed."];
         }
         theClassifier = null;
-        // Careful... should I repeat fetch here?  Shouldn't fetch be done when New or Open
-        // is called?  Try it out.
+
         [classifierGlyphArrayController setContent:[]];
         [symbolOutlineDelegate close];
         [classifierTableViewDelegate close];
@@ -382,35 +378,3 @@ was pressed.*/
     [classifierController updateNameUsedLabel];
 }
 @end
-
-// @implementation PhotoView : CPImageView
-// /*
-// PhotoView implements functions required by the collection view
-// (setSelected and setRepresented)
-// see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
-// */
-// {
-//     CPImageView _imageView;
-// }
-// - (void)setSelected:(BOOL)isSelected
-// {
-//     [self setBackgroundColor:isSelected ? [CPColor grayColor] : nil];
-// }
-// - (void)setRepresentedObject:(id)anObject
-// {
-//     if (!_imageView)
-//     {
-//         var frame = CGRectInset([self bounds], 5.0, 5.0);
-
-//         _imageView = [[CPImageView alloc] initWithFrame:frame];
-
-//         [_imageView setImageScaling:CPScaleProportionally];
-//         [_imageView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
-
-//         [self addSubview:_imageView];
-//     }
-
-//     [_imageView setImage:anObject];
-// }
-// @end
-
