@@ -6,7 +6,6 @@
 @implementation ClassifierTableViewDelegate : CPObject
 {
     @outlet CPArrayController symbolCollectionArrayController;
-    CPMutableArray collectionViews @accessors;
     CPArray cvArrayControllers @accessors;
     int headerLabelHeight @accessors;
     int photoViewInset @accessors;
@@ -18,8 +17,7 @@
     [self setHeaderLabelHeight:20];
     [self setPhotoViewInset:10];
     // [[CPNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewContentBoundsDidChange:) name:CPViewBoundsDidChangeNotification object:self.scrollView.contentView];
-    [self setCollectionViews:[[CPMutableArray alloc] init]];
-    [self setCvArrayControllers:[[CPMutableArray alloc] init]];
+    [self setCvArrayControllers:[[CPArray alloc] init]];
         // These arrays should be given enough capacity as the symbolCollections are assembled, because it's important for their indexes
         // to correspond to the rows of the table.
     return self;
@@ -55,13 +53,16 @@
     // var symbolCollectionArrayController = [[CPArrayController alloc] init];
     [symbolCollectionArrayController setContent:symbolCollectionArray];
     var nSymbols = [[symbolCollectionArrayController contentArray] count];
-    [collectionViews initWithCapacity:nSymbols];
     [cvArrayControllers initWithCapacity:nSymbols];
     for (var j = 0; j < nSymbols; ++j)
     {
+        // cvArrayControllers[j] = [[CPArrayController alloc] init];
         cvArrayControllers[j] = [[CPArrayController alloc] init];
+        [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];
     }
+    console.log("selection indexes initialized:");
+    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
 }
 - (void)close
 {
@@ -99,14 +100,25 @@
 - (CPView)tableView:(CPTableView)aTableView viewForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // Return a view for the TableView to use a cell of the table.
 {
-    var aView = [[ViewWithObjectValue alloc] initWithFrame:CGRectMakeZero()];
-    return aView;
+    console.log('---viewForTableColumn---');
+    // if (cachedViews[aRow])
+    // {
+    //     return cachedViews[aRow];
+    // }
+    // else
+    // {
+    //     cachedViews[aRow] = [[ViewWithObjectValue alloc] initWithFrame:CGRectMakeZero()];
+    //     return cachedViews[aRow];  // Nope... doesn't display!
+    // }
+    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
+    return [[ViewWithObjectValue alloc] initWithFrame:CGRectMakeZero()];
 }
 - (void)tableView:(CPTableView)aTableView willDisplayView:(CPView)aView forTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // Set up the view to display.  (Delegate method.)
 // (Note: I do things in this function so that I have access to objectValue... which I don't in viewForTableColumn.)
 {
     console.log("---willDisplayView---");
+    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
     var symbolCollection = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:aTableColumn row:aRow],
         symbolName = [symbolCollection symbolName],  // If I use binding, I don't need this variable
         label = [[CPTextField alloc] initWithFrame:CGRectMake(0,0,CGRectGetWidth([aView bounds]), [self headerLabelHeight])];
@@ -130,9 +142,12 @@
     // var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayController parentView:parentView row:aRow];
     var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayControllers[aRow] parentView:parentView row:aRow];
     [cv bind:@"selectionIndexes" toObject:cvArrayControllers[aRow] withKeyPath:@"selectionIndexes" options:nil];
+    console.log("cvArrayControllers[aRow selection indexes:");
+    console.log([cvArrayControllers[aRow] selectionIndexes]);
+    [cv setSelectionIndexes:[cvArrayControllers[aRow] selectionIndexes]];
     // [cvArrayControllers[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];  // Hopefully won't have one selected at the beginning
     //  commented: do not want to do this each time the view is displayed (scrolled past)
-    [collectionViews insertObject:cv atIndex:aRow];  // Do I need this?
+    // [collectionViews insertObject:cv atIndex:aRow];  // Do I need this?
         // Again... there should be an 'if' at the beginning of this that checks if I need a new view!  I probably only need to do this the 1st time the view's displayed...
         // First make sure that the array controller's working, then explore that.
     // Hmmm... selection is starting to work.
@@ -223,7 +238,18 @@
         withKeyPath:@"arrangedObjects"
         options:nil];
     [aView addSubview:cv];
-    [cvArrayController setContent:[model glyphList]];
+    // [cvArrayController setContent:[model glyphList]];
+        // I think this erases my selection indexes... but I do it to kick the collection view to display...
+        // I think that I'll start a pattern of BINDING LATER (after content is set,) and just kicking the view with setContent
+        // The binding handles CHANGES, but doesn't need to handle the initialization, because it constrains the order of operation too much.
+        // Careful about changing this though... it'll affect the row height calculation.
+        // That will be fixed by using the same array controller from the row height (in fact, just delete that argument.)
+    [cv setContent:[model glyphList]];  // Hopefully the binding still works, I'll have to test that later.
+        // Recall: I had to interrupt the pattern of ONLY BINDING and NOT CALLING SetContent because that required that
+        // I setContent of the array controller AFTER the view has been bound.  However, the view has to be rebuilt whenever you
+        // scroll past it, so I cannot setContent of the array controller that often!  It erases the selection!  That, in short,
+        // is why I need to both BIND and setContent.
+
     // console.log("_make returning cv for row: " + aRow + " of height: " + CGRectGetHeight([cv frame]));
     return cv;
 }
@@ -254,7 +280,7 @@
         [cvArrayControllers[aRow] setSelectedObjects:[]];
         // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
-    else
+    else  // deselct isn't working yet!
     {
         console.log("else");  // Always else.
         // Telling the collection view to show its selection (aha!  the better way would be to bind its selection to the array controller, which happens in Rodan)
