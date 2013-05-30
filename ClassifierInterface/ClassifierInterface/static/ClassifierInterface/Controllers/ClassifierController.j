@@ -48,6 +48,8 @@
     [newClassifierWindow setDefaultButton:createButton];
     [openClassifierWindow setDefaultButton:openButton];
     [openClassifierTableView setDelegate:openClassifierTableViewDelegate];
+    [classifierTableView setDelegate:classifierTableViewDelegate];
+    [classifierTableView setDataSource:classifierTableViewDelegate];
 }
 
 - (@action)new:(CPMenuItem)aSender
@@ -182,14 +184,8 @@ was pressed.*/
     // [self setUpCollectionView];  // Gives pngData error since I changed PhotoView
 
     [classifierTableViewDelegate initializeSymbolCollections:theClassifier];
-    [classifierTableView setDelegate:classifierTableViewDelegate];
-    // [classifierTableView bind:@"content"  // Shouldn't need this binding...
-    //     toObject:symbolCollectionArrayController
-    //     withKeyPath:@"arrangedObjects"
-    //     options:nil];
-    [classifierTableView setDataSource:classifierTableViewDelegate];
+    [classifierTableView reloadData];
 
-    // [self _initializeSymbols];
     [symbolTableDelegate initializeSymbols:theClassifier];
 }
 - (@action)showAreYouSureWindow:(CPButton)firstDeleteButton
