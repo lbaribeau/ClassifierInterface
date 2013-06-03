@@ -55,11 +55,9 @@
     {
         cvArrayControllers[j] = [[CPArrayController alloc] init];
         [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
-        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // Still can't deselect... (this is more for if an item is removed)
+        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
-    // console.log("selection indexes initialized:");
-    // console.log([cvArrayControllers[0] selectionIndexes]);
 }
 - (void)close
 {
@@ -142,39 +140,10 @@
         console.log("Set cv0 selection indexes to:__ (this shouldn't deselect when scrolling!)");
         console.log([cvArrayControllers[aRow] selectionIndexes]);
     }
-    [cvArrayControllers[aRow] bind:@"selectionIndexes" toObject:cv withKeyPath:@"selectionIndexes" options:nil];  // should overwrite the binding to the last cv
-
-    // [cv addObserver:self forKeyPath:@"selectionIndexes" options:CPKeyValueObservingOptionInitial context:nil];
-    [cv addObserver:self forKeyPath:@"selectionIndexes" options:nil context:aRow];
-        // This is happening too many times.
-        // I guess the same cv is persisting??  That's not even possible, _make allocs a new one.
-        // Try checking for an observer.
-        // Maybe I should use a different object just to keep things separate... Nah I need access to the arrayControllers.
-        // Actually... maybe not!  It's just the first click after it comes back that calls tons.
-        // The real problem is the selection changing on scroll.
-        // I scroll down and scroll back and I get one more call to notify, so the problem is because EACH collection view
-        // has an observer on it.  The clicking is fine.
-        // Problem.
-        //  - EACH collection view has an observer on it AND the selection changes from scrolling.
-        //  Just change the latter and we're good(?)
-        //  It would be good to free the previous collection view... we shouldn't collect collection views by scrolling!
-        // It's a relief that the array controller array is working, at least I think it is.
-        // I think that the selection changes because of the binding.  Although, that doesn't make sense looking at the code.
-        // The amount of additional calls to observeValueForKeyPath is proportional to the amount that you scroll.
-        // If you scroll down and back and down and back... you then get a ton of 'observeValueForKeyPaths' whenever a selection changes.
-        // Perhaps I need to clean up the collection views a little better... (ensure that they get deleted... or at least unbound to the
-        // array controller.)
-        // What if I bind it in the other direction: the array controller to the cv.  There would be a bit of a handshake where the indeces of
-        // the new cv are set by the array controller and then the array controller rebinds to the new CV.
-        // Another question... if it gets called 3 times when I click... why?
-        //  Twice on a new window.  (why twice?)
-        //  Once if I click and the selection doesn't change.
-        //  Twice if I change selections in the same collectionView
-        //  Thrice if I scroll down and click.
-        //    - Deselection of first one, plus two for the change of selection of the clicked one (good)
-        // Twice on a new window... the first Change has both new and old the same (one selected) but the second change is as expected (old=none selected)
-        // Anyway... that seems to work.  It's just the memory to check now.  I think it works!  I think it forgets one or two but not often :)
-
+    [cvArrayControllers[aRow] bind:@"selectionIndexes" toObject:cv withKeyPath:@"selectionIndexes" options:nil];
+        // Note: this is a clever binding.  We don't want to bind the view to the array controller because the view is transitory
+        // and we'd end up with an accumulation of bindings.
+    [cv addObserver:self forKeyPath:@"selectionIndexes" options:nil context:aRow];  // allows observeValueForKeyPath function
 }
 
 - (void)observeValueForKeyPath:(CPString)aKeyPath ofObject:(CPCollectionView)aCollectionView change:(CPDictionary)aChange context:(id)aContext
@@ -185,43 +154,15 @@
 // addObserver and implement the right method on the observer (use a new class: collectionViewObserver)
 // aChange is a neato dictionary.
 // aContext is the row that got clicked.
-// Why does this get called when I scroll around???  I suppose it's because it changed on the collection view
-// and not the array controller?  (because a new cView was made?  Or the old cView got dropped?)
-// I get a new collection view every time it goes out and back...
-// I NEED a way to list the observers on the collection view.
 {
-    console.log("observeValueForKeyPath");
-    console.log(aChange);
+    // console.log("observeValueForKeyPath");
+
     var theClickedRow = aContext;
-    // console.log([aChange objectForKey:@"CPKeyValueChangeNewKey"]);
-    // console.log([aChange objectForKey:@"CPKeyValueChangeOldKey"]);
-    // console.log([aChange objectForKey:@"CPKeyValueChangeKindKey"]);
-    // console.log([aChange allKeys]);
-    // console.log([aChange allValues]);
     // Check if the new indexSet is empty.
     var newIndexSet = [aChange valueForKey:@"CPKeyValueChangeNewKey"];
-    // console.log([aChange valueForKey:@"CPKeyValueChangeNewKey"]);
-    // console.log("Old: " + [aChange valueForKey:@"CPKeyValueChangeOldKey"]);  //null
-    // console.log("Changed: " + [aChange valueForKey:@"CPKeyValueChangeKindKey"]);  //null
-    // console.log(newIndexSet);
-    // console.log([newIndexSet firstIndex]);
-    // if ([newIndexSet firstIndex] == -1)  // is False when firstIndex is 0 as well as when
-    //     console.log("True!");
-    // else
-    //     console.log("False!");
-    // if (newIndexSet == [CPIndexSet indexSet])
-    //     console.log("Empty!");
-    // else
-    //     console.log("Unempty!");
-    // console.log([aCollectionView observationInfo]);
-
-    if (([newIndexSet firstIndex] > -1) && ! ([[CPApp currentEvent] modifierFlags] & (CPShiftKeyMask | CPCommandKeyMask)))  //http://stackoverflow.com/questions/9268045
+    if (([newIndexSet firstIndex] !== CPNotFound) && ! ([[CPApp currentEvent] modifierFlags] & (CPShiftKeyMask | CPCommandKeyMask)))  //http://stackoverflow.com/questions/9268045
     {
-        // console.log(aCollectionView);
-        // console.log([aCollectionView observationInfo]);
-        // console.log("Nullifying.");
-
-        // Nullify the selection on all other rows.
+        // console.log("Nullifying the selection on all other rows.");
         var i = 0,
             nArrayControllers = [cvArrayControllers count];
         for (; i < nArrayControllers; ++i)
@@ -229,34 +170,24 @@
             if (i !== theClickedRow)
             {
                 [cvArrayControllers[i] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+                // The reason that we ensure that firstIndex != CPNotFound is because this line of code causes ANOTHER call to observeValueForKeyPath.
+                // So we break an infinite loop by only nullifying other views' selections if the newIndexSet has a firstIndex (which isn't true for
+                // this line's change of selection)
             }
         }
+        // This part actually gets called TWICE when once would be enough.
+        // For some reason observeValueForKeyPath gets called twice when you click a new collection view.  The first aChange doesn't make sense:
+        // both 'old' and 'new' contain the same indexSet.  I don't feel the need to figure what why the first change happens.
     }
     // Ok, so what do?
     // if not shift*
     //   nullify selections of all other array controllers
     //   if no change and it's a single selection
-    //     deselect
+    //     default (I don't feel the need to allow deselection... they can ctrl click if they really want)
     //   else
     //     default (don't implement) (let the change go through)
     // if shift
     //   default
-
-    // *Problem: infinite loop.  I when I change the index of the other views, it calls this notification.
-    // Solution: check at the beginning of the function and only act if a selection was ADDED and do not act
-    // if the newIndexSet is -1.  That breaks the loop.
-    // Discussion:
-    // I don't have access to all the collection views.
-    // Look at what change is taking place:  if it was deselection, (like if the new selection is nil,) then
-    // don't do the nullify.  This is necessary to break the infinite loop.  If it was a single deselection,
-    // then ctrl is pressed.  What about single click deselection without ctrl... in that case, don't nullify (checking
-    // aChange for empty still works.)  Basically, if the change was to nullify the selection, then don't proceed.
-
-    // Only problem remaining is if you shift click without a current selection.  I think that's why the array
-    // controllers are initialized with a selection.  When I shift click a collectionView with no selection, it
-    // tries to select the range {-1, <clickedNode>}.  Maybe I should look at the Range that I'm setting up (try 0,0).
-    // Ok, (0,0) works the same.  I just need to convince a collectionView to make a selection when it's shift clicked
-    // from empty.  I guess it tosses CPInvalidArgumentException.
 
     // It would be REALLY nice if I had that global array that was a composition of all the collection view arrays.
     // That way, on a shift click, I could ask that array controller for an index, and then make a range from there
