@@ -18,7 +18,6 @@ see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
 - (void)setSelected:(BOOL)isSelected
 {
     [self setBackgroundColor:isSelected ? [CPColor grayColor] : nil];
-    // [self setBackgroundColor:isSelected ? [CPColor grayColor] : [CPColor redColor]];
 }
 - (void)setRepresentedObject:(id)anObject
 {

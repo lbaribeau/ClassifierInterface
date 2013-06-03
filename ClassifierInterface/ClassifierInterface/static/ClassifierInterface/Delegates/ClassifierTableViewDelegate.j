@@ -55,10 +55,11 @@
     {
         cvArrayControllers[j] = [[CPArrayController alloc] init];
         [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
-        [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,-1)]];
+        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // Still can't deselect... (this is more for if an item is removed)
+        [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
-    console.log("selection indexes initialized:");
-    console.log([cvArrayControllers[0] selectionIndexes]);
+    // console.log("selection indexes initialized:");
+    // console.log([cvArrayControllers[0] selectionIndexes]);
 }
 - (void)close
 {
@@ -96,7 +97,7 @@
 - (CPView)tableView:(CPTableView)aTableView viewForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // Return a view for the TableView to use a cell of the table.
 {
-    console.log('---viewForTableColumn---');
+    // console.log('---viewForTableColumn---');
     // if (cachedViews[aRow])
     // {
     //     return cachedViews[aRow];
@@ -106,7 +107,7 @@
     //     cachedViews[aRow] = [[ViewWithObjectValue alloc] initWithFrame:CGRectMakeZero()];
     //     return cachedViews[aRow];  // Nope... doesn't display!
     // }
-    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
+    // console.log([cvArrayControllers[0] selectionIndexes]);
     return [[ViewWithObjectValue alloc] initWithFrame:CGRectMakeZero()];
 }
 - (void)tableView:(CPTableView)aTableView willDisplayView:(CPView)aView forTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
@@ -114,7 +115,6 @@
 // (Note: I do things in this function so that I have access to objectValue... which I don't in viewForTableColumn.)
 {
     console.log("---willDisplayView---");
-    console.log([cvArrayControllers[0] selectionIndexes]);  // WHY DOES IT BECOME 1 LATER!?
     var symbolCollection = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:aTableColumn row:aRow],
         symbolName = [symbolCollection symbolName],  // If I use binding, I don't need this variable
         label = [[CPTextField alloc] initWithFrame:CGRectMake(0,0,CGRectGetWidth([aView bounds]), [self headerLabelHeight])];
@@ -133,11 +133,136 @@
     [aView addSubview:parentView];
     [parentView setFrame:CGRectMake(0, [self headerLabelHeight], CGRectGetWidth([aView bounds]), CGRectGetHeight([aView bounds]) - [self headerLabelHeight])];
     var cv = [self _makeCollectionViewForTableView:aTableView arrayController:cvArrayControllers[aRow] parentView:parentView row:aRow];
-    [cv bind:@"selectionIndexes" toObject:cvArrayControllers[aRow] withKeyPath:@"selectionIndexes" options:nil];
-    console.log("cvArrayControllers[aRow selection indexes:");
-    console.log([cvArrayControllers[aRow] selectionIndexes]);
-    [cv setSelectionIndexes:[cvArrayControllers[aRow] selectionIndexes]];
+    // [cv bind:@"selectionIndexes" toObject:cvArrayControllers[aRow] withKeyPath:@"selectionIndexes" options:nil];
+    [cv setSelectionIndexes:[cvArrayControllers[aRow] selectionIndexes]];  // This should allow you to scroll down and back and have the selection persist
+        // Now... when did cvArrayControllers[aRow] selectionIndexes get erased!
+        // Maybe the binding isn't working... or maybe the array controller
+    if (aRow === 0)
+    {
+        console.log("Set cv0 selection indexes to:__ (this shouldn't deselect when scrolling!)");
+        console.log([cvArrayControllers[aRow] selectionIndexes]);
+    }
+    [cvArrayControllers[aRow] bind:@"selectionIndexes" toObject:cv withKeyPath:@"selectionIndexes" options:nil];  // should overwrite the binding to the last cv
+
+    // [cv addObserver:self forKeyPath:@"selectionIndexes" options:CPKeyValueObservingOptionInitial context:nil];
+    [cv addObserver:self forKeyPath:@"selectionIndexes" options:nil context:aRow];
+        // This is happening too many times.
+        // I guess the same cv is persisting??  That's not even possible, _make allocs a new one.
+        // Try checking for an observer.
+        // Maybe I should use a different object just to keep things separate... Nah I need access to the arrayControllers.
+        // Actually... maybe not!  It's just the first click after it comes back that calls tons.
+        // The real problem is the selection changing on scroll.
+        // I scroll down and scroll back and I get one more call to notify, so the problem is because EACH collection view
+        // has an observer on it.  The clicking is fine.
+        // Problem.
+        //  - EACH collection view has an observer on it AND the selection changes from scrolling.
+        //  Just change the latter and we're good(?)
+        //  It would be good to free the previous collection view... we shouldn't collect collection views by scrolling!
+        // It's a relief that the array controller array is working, at least I think it is.
+        // I think that the selection changes because of the binding.  Although, that doesn't make sense looking at the code.
+        // The amount of additional calls to observeValueForKeyPath is proportional to the amount that you scroll.
+        // If you scroll down and back and down and back... you then get a ton of 'observeValueForKeyPaths' whenever a selection changes.
+        // Perhaps I need to clean up the collection views a little better... (ensure that they get deleted... or at least unbound to the
+        // array controller.)
+        // What if I bind it in the other direction: the array controller to the cv.  There would be a bit of a handshake where the indeces of
+        // the new cv are set by the array controller and then the array controller rebinds to the new CV.
+        // Another question... if it gets called 3 times when I click... why?
+        //  Twice on a new window.  (why twice?)
+        //  Once if I click and the selection doesn't change.
+        //  Twice if I change selections in the same collectionView
+        //  Thrice if I scroll down and click.
+        //    - Deselection of first one, plus two for the change of selection of the clicked one (good)
+        // Twice on a new window... the first Change has both new and old the same (one selected) but the second change is as expected (old=none selected)
+        // Anyway... that seems to work.  It's just the memory to check now.  I think it works!  I think it forgets one or two but not often :)
+
 }
+
+- (void)observeValueForKeyPath:(CPString)aKeyPath ofObject:(CPCollectionView)aCollectionView change:(CPDictionary)aChange context:(id)aContext
+// KVO (Key Value Observing) method.  This is how I trigger code when the collection view changes selection.
+// References:
+// 1. NSKeyValueObserving Protocol Reference
+// 2. http://www.cocoabuilder.com/archive/cocoa/220039-nscollectionview-getting-notified-of-selection-change.html
+// addObserver and implement the right method on the observer (use a new class: collectionViewObserver)
+// aChange is a neato dictionary.
+// aContext is the row that got clicked.
+// Why does this get called when I scroll around???  I suppose it's because it changed on the collection view
+// and not the array controller?  (because a new cView was made?  Or the old cView got dropped?)
+// I get a new collection view every time it goes out and back...
+// I NEED a way to list the observers on the collection view.
+{
+    console.log("observeValueForKeyPath");
+    console.log(aChange);
+    var theClickedRow = aContext;
+    // console.log([aChange objectForKey:@"CPKeyValueChangeNewKey"]);
+    // console.log([aChange objectForKey:@"CPKeyValueChangeOldKey"]);
+    // console.log([aChange objectForKey:@"CPKeyValueChangeKindKey"]);
+    // console.log([aChange allKeys]);
+    // console.log([aChange allValues]);
+    // Check if the new indexSet is empty.
+    var newIndexSet = [aChange valueForKey:@"CPKeyValueChangeNewKey"];
+    // console.log([aChange valueForKey:@"CPKeyValueChangeNewKey"]);
+    // console.log("Old: " + [aChange valueForKey:@"CPKeyValueChangeOldKey"]);  //null
+    // console.log("Changed: " + [aChange valueForKey:@"CPKeyValueChangeKindKey"]);  //null
+    // console.log(newIndexSet);
+    // console.log([newIndexSet firstIndex]);
+    // if ([newIndexSet firstIndex] == -1)  // is False when firstIndex is 0 as well as when
+    //     console.log("True!");
+    // else
+    //     console.log("False!");
+    // if (newIndexSet == [CPIndexSet indexSet])
+    //     console.log("Empty!");
+    // else
+    //     console.log("Unempty!");
+    // console.log([aCollectionView observationInfo]);
+
+    if (([newIndexSet firstIndex] > -1) && ! ([[CPApp currentEvent] modifierFlags] & (CPShiftKeyMask | CPCommandKeyMask)))  //http://stackoverflow.com/questions/9268045
+    {
+        // console.log(aCollectionView);
+        // console.log([aCollectionView observationInfo]);
+        // console.log("Nullifying.");
+
+        // Nullify the selection on all other rows.
+        var i = 0,
+            nArrayControllers = [cvArrayControllers count];
+        for (; i < nArrayControllers; ++i)
+        {
+            if (i !== theClickedRow)
+            {
+                [cvArrayControllers[i] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+            }
+        }
+    }
+    // Ok, so what do?
+    // if not shift*
+    //   nullify selections of all other array controllers
+    //   if no change and it's a single selection
+    //     deselect
+    //   else
+    //     default (don't implement) (let the change go through)
+    // if shift
+    //   default
+
+    // *Problem: infinite loop.  I when I change the index of the other views, it calls this notification.
+    // Solution: check at the beginning of the function and only act if a selection was ADDED and do not act
+    // if the newIndexSet is -1.  That breaks the loop.
+    // Discussion:
+    // I don't have access to all the collection views.
+    // Look at what change is taking place:  if it was deselection, (like if the new selection is nil,) then
+    // don't do the nullify.  This is necessary to break the infinite loop.  If it was a single deselection,
+    // then ctrl is pressed.  What about single click deselection without ctrl... in that case, don't nullify (checking
+    // aChange for empty still works.)  Basically, if the change was to nullify the selection, then don't proceed.
+
+    // Only problem remaining is if you shift click without a current selection.  I think that's why the array
+    // controllers are initialized with a selection.  When I shift click a collectionView with no selection, it
+    // tries to select the range {-1, <clickedNode>}.  Maybe I should look at the Range that I'm setting up (try 0,0).
+    // Ok, (0,0) works the same.  I just need to convince a collectionView to make a selection when it's shift clicked
+    // from empty.  I guess it tosses CPInvalidArgumentException.
+
+    // It would be REALLY nice if I had that global array that was a composition of all the collection view arrays.
+    // That way, on a shift click, I could ask that array controller for an index, and then make a range from there
+    // to the new click.
+}
+
 
 - (void)tableView:(CPTableView)aTableView objectValueForTableColumn:(CPTableColumn)aTableColumn row:(int)aRow
 // (Data source method)
@@ -250,33 +375,32 @@
 - (void)tableView:(CPTableView)aTableView shouldSelectRow:(int)aRow
 // Returns the height of a specified row
 {
-    // var glyphs = [[[aTableView dataSource] tableView:aTableView objectValueForTableColumn:nil row:aRow] glyphList];
-    console.log("Selecting glyphs for row " + aRow + ".");
-    // console.log(glyphs);
-    // if(! [cvArrayControllers[aRow] setSelectedObjects:glyphs] )
-    // if(! [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]] )  // Doesn't work (always the same)
-    // Need to check if all are selected... if so, select none, and if none, select all.
-    // No better way than to loop
-    // var selections =
+    console.log("ShouldSelectRow");
     if ([[cvArrayControllers[aRow] selectionIndexes] count] === [[cvArrayControllers[aRow] contentArray] count])
     {
         // all are selected
-        // console.log("if true");
-        // console.log("Selection did not change (all must have been selected.)");
         [cvArrayControllers[aRow] setSelectedObjects:[]];
-        // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
-    else  // deselect isn't working yet!
+    else
     {
-        console.log("else");
-        // Telling the collection view to show its selection (aha!  the better way would be to bind its selection to the array controller, which happens in Rodan)
-        // [collectionViews[aRow] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,[[cvArrayControllers[aRow] contentArray] count])]];
-        // [cvArrayControllers[aRow] setSelectedIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,[[cvArrayControllers[aRow] contentArray] count])]];
         [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]];
     }
-    // console.log("Changed selection.  cvArrayController[" + aRow + "]:");
-    // console.log(cvArrayControllers[aRow]);
-    // console.log(cvArrayControllers);
     return NO;
 }
+// Hmmm deselect of a single element?  Not needed as much as the collection views talking to eachother.
+// Persistent selection is just fine (only deselect when a new thing is selected...)
+// but I want a more global selection object.  When a second collection view is clicked, then I need to deselect from the first
+// collection view, AND when a second is clicked with shift clicked, I need to retain the selection.
+// I need a really global array controller... that is just all of the cvArrayControllers in series... so the collectionViews
+// are bound to the little array controllers... I don't think I can bind them to a subArray of the global one... so all that code
+// will stay... so I need to write a wrapper/handler that responds to every change in selection of any array controller...
+// maybe I can bind...
+// The handler should subscribe to ALL changes in selection (the controller must have a selectionDidChange,)... then it can also
+// have full control of what happens: it can deselect all selections in the other controllers if shift isn't pressed, etc.  Then
+// the text box can take its cues from the global controller.  Call it SelectionController.  It can have the TableViewDelegate and
+// the SymbolTableDelegate.  It won't need the table view, because the collectionViews are bound to the array controllers, (so they
+// won't need to be kicked.)  It only needs the symbolTable's array controller because it can calculate everything it needs from the
+// selection<Symbol>.name.
+// Well... I'm not sure that the array controller has such a notification, but the collection views do!  I'll just set them all
+// to have the same delegate!
 @end
