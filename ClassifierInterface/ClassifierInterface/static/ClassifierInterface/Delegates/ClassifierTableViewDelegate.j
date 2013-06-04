@@ -114,6 +114,7 @@
 
         for (var j = 0; j < selectedObjects_count; ++j)
         {
+            console.log("Inside j loop (found " + selectedObjects_count + " selectedObject.");
             // Remove selectedObjects from their current symbolCollection bin
             for (var k = 0; k < symbolCollectionArray_count; ++k)
             {
@@ -126,10 +127,18 @@
                     // init.  I think I will do it, and not rewrite init, because init will work either way.
                     console.log("Removed glyph with name " + [selectedObjects[j] idName] + " from symbolCollection " + k);
                     console.log([[symbolCollectionArray[j] glyphList] count]);
-                    [symbolCollectionArray[k] removeGlyph:selectedObjects[j]];  // removal isn't working
+                    [symbolCollectionArray[k] removeGlyph:selectedObjects[j]];
                     console.log([[symbolCollectionArray[j] glyphList] count]);
-                    symbolCollectionArrayController
-                    break;  // hopefully only breaks out of one loop.
+                    if ([[symbolCollectionArray[k] glyphList] count] === 0)
+                    {
+                        // Remove this symbolCollection, and update symbolCollectionArray_count
+                        [symbolCollectionArray removeObjectAtIndex:[k]];
+                        --symbolCollectionArray_count;
+                        console.log("Just removed a symbolCollection:");
+                        console.log(symbolCollectionArray);
+                        // Now the collectionView is complaining... I wonder whether it's one that needs to display, because I don't really need it to.
+                    }
+                    break;
                 }
             }
             console.log("Changing name of glyph from " + [selectedObjects[j] idName] + " to " + newName);
@@ -165,9 +174,11 @@
             // }
         }
     }
-    console.log(symbolCollectionArray);
+    console.log(symbolCollectionArray);  //
     console.log("Got here!");
-    [theTableView reloadData];
+    [theTableView noteNumberOfRowsChanged];
+    [theTableView reloadData];  // breaks if an item was removed from the symbolCollectionArray (from which the tableView gets its data... but it's not a binding)
+                                // but the collectionViews are bound.  Maybe I can unbind them or something, or maybe they ought to be smarter.
     console.log("And here!");
 
 
@@ -233,7 +244,7 @@
 // Set up the view to display.  (Delegate method.)
 // (Note: I do things in this function so that I have access to objectValue... which I don't in viewForTableColumn.)
 {
-    // console.log("---willDisplayView---");
+    console.log("---willDisplayView--- row " + aRow);
     var symbolCollection = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:aTableColumn row:aRow],
         symbolName = [symbolCollection symbolName],  // If I use binding, I don't need this variable
         label = [[CPTextField alloc] initWithFrame:CGRectMake(0,0,CGRectGetWidth([aView bounds]), [self headerLabelHeight])];
@@ -374,6 +385,7 @@
 }
 - (CPCollectionView)_makeCollectionViewForTableView:(CPTableView)aTableView arrayController:(CPArrayController)cvArrayController parentView:(CPView)aView  row:(int)aRow
 {
+    // console.log("_make for row " + aRow);
     var model = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:nil row:aRow],
         cv = [[CPCollectionView alloc] initWithFrame:CGRectMakeZero()];
     [cv setAutoresizesSubviews:NO];
