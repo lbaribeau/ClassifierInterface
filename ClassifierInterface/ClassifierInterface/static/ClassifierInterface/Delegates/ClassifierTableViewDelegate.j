@@ -81,104 +81,223 @@
 
     var symbolCollectionArray = [symbolCollectionArrayController arrangedObjects],
         symbolCollectionArray_count = [symbolCollectionArray count],
-        bucket_already_exists = false;
+        bin_already_exists = false,
+        newBinIndex = 0;
 
     // TODO: Optimize, maybe with filters
-    for (var i = 0; i < symbolCollectionArray_count; ++i)
+    // Assume sorted
+    for (; newBinIndex < symbolCollectionArray_count; ++newBinIndex)
     {
-        if ([symbolCollectionArray[i] symbolName] === newName)
+        if ([symbolCollectionArray[newBinIndex] symbolName] === newName)
         {
-            bucket_already_exists = true;
+            bin_already_exists = true;
             break;
         }
+        else if ([symbolCollectionArray[newBinIndex] symbolName] > newName)
+        {
+            console.log("Exiting at newBinIndex " + newBinIndex + " as a bucket doesn't exist for that name.");
+            break;
+        }
+
     }
-    console.log("bucket_already_exists: " + bucket_already_exists);
-    if (! bucket_already_exists)
+    console.log("bin_already_exists: " + bin_already_exists);
+    if (! bin_already_exists)
     {
+        // Make a bin (a symbolCollection).
         var newSymbolCollection = [[SymbolCollection alloc] init];
         [newSymbolCollection setSymbolName:newName];
         console.log("Adding new symbolCollection with name " + [newSymbolCollection symbolName] + ".");
-        [symbolCollectionArrayController addObject:newSymbolCollection];  // Don't worry about sorting, let arrangedObjects do that.
+        // [symbolCollectionArrayController addObject:newSymbolCollection];  // Don't worry about sorting, let arrangedObjects do that.
+        [symbolCollectionArrayController insertObject:newSymbolCollection atArrangedObjectIndex:newBinIndex];
         // Set maxRows and maxCols later.
-        ++symbolCollectionArray_count;  // Gets used in later loops
-    }
 
-    var cvArrayControllers_count = [cvArrayControllers count];
+        ++symbolCollectionArray_count;  // Gets used in later loops(?)
+
+        // need to alloc a new array controller.
+        [cvArrayControllers insertObject:[[CPArrayController alloc] init] atIndex:newBinIndex];
+        [cvArrayControllers[newBinIndex] setContent:[newSymbolCollection glyphList]];
+        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
+        [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+        // Maybe that should have been a function because it's common code with init.
+    }
+    // newSymbolCollection is now set.
+    var cvArrayControllers_count = [cvArrayControllers count],
+        removalIndexAdjustment = 0;
     for (var i = 0; i < cvArrayControllers_count; ++i)
     {
-        var selectedObjects = [cvArrayControllers[i] selectedObjects],
-            selectedObjects_count = [selectedObjects count];
-        // console.log([selectedObjects copy]);
-        // console.log(selectedObjects);
-        // console.log([symbolCollectionArrayController contentArray]);
+        // var selectedObjects = [cvArrayControllers[i] selectedObjects],
+        //     selectedObjects_count = [selectedObjects count];
+        // // console.log([selectedObjects copy]);
+        // // console.log(selectedObjects);
+        // // console.log([symbolCollectionArrayController contentArray]);
 
-        for (var j = 0; j < selectedObjects_count; ++j)
+        // for (var j = 0; j < selectedObjects_count; ++j)
+        // {
+        //     console.log("Inside j loop (found " + selectedObjects_count + " selectedObject.");
+        //     // Remove selectedObjects from their current symbolCollection bin
+        //     // for (var k = 0; k < symbolCollectionArray_count; ++k)
+        //     // {
+        //     //     if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
+        //     //     {
+        //     //         // [self _removeGlyph:selectedObjects[j] fromSymbolCollection:symbolCollectionArray[j]];
+        //     //         // symbolCollectionArray[j] addGlyphAndUpdateMaxRowAndMaxCol
+        //     //         // I should actually just write [symbolCollection addGlyph] to keep maxRows and maxCols up to date.
+        //     //         // Well, it would be nicer to read but a little slower, so yeah it'd be better, but I'd also have to rewrite
+        //     //         // init.  I think I will do it, and not rewrite init, because init will work either way.
+        //     //         console.log("Removed glyph with name " + [selectedObjects[j] idName] + " from symbolCollection " + k);
+        //     //         console.log([[symbolCollectionArray[j] glyphList] count]);
+        //     //         [symbolCollectionArray[k] removeGlyph:selectedObjects[j]];  // make sure that the cvArrayController figures this out
+
+        //     //         console.log([[symbolCollectionArray[j] glyphList] count]);
+        //     //         if ([[symbolCollectionArray[k] glyphList] count] === 0)
+        //     //         {
+        //     //             // Remove this symbolCollection, and update symbolCollectionArray_count
+        //     //             [symbolCollectionArray removeObjectAtIndex:[k]];
+        //     //             --symbolCollectionArray_count;
+        //     //             console.log("Just removed a symbolCollection:");
+        //     //             console.log(symbolCollectionArray);
+        //     //             // Now the collectionView is complaining... I wonder whether it's one that needs to display, because I don't really need it to.
+        //     //         }
+        //     //         break;
+        //     //     }
+        //     // }
+        //     // [symbolCollectionArray[i] removeGlyph:selectedObjects[j]];
+        //     [cvArrayControllers removeObject:selectedObjects[j]];  // This may break the loop unless we decrement j
+        //     // --j;  // do this at the end
+        //     // need to decrement newBinIndex too if j is less than it.
+        //     [symbolCollectionArray[i] removeGlyph:selectedObjects[j]];
+        //     // There will be a problem when length is now zero, but I'm still working on a different problem.
+
+        //     console.log("Changing name of glyph from " + [selectedObjects[j] idName] + " to " + newName);
+        //     [selectedObjects[j] writeSymbolName:newName];
+        //     // Add to the new bin
+        //     // Need to get rid of this loop... set newBin at the beginning
+        //     // for (var k = 0; k < symbolCollectionArray_count; ++k)
+        //     // {
+        //     //     if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
+        //     //     {
+        //     //         // [self _addGlyph:selectedObjects[j] toSymbolCollection:symbolCollectionArray[j]];
+        //     //         console.log("Adding glyph with name " + [selectedObjects[j] idName] + " to symbolCollection " + k);
+        //     //         [symbolCollectionArray[k] addGlyph:selectedObjects[j]];
+        //     //         break;
+        //     //     }
+        //     // }
+        //     // [symbolCollectionArray[k] addGlyph:selectedObjects[j]];
+        //     // [newSymbolCollection addGlyph:selectedObjects[j]];
+        //     if (bin_already_exists)
+        //     {
+        //         [cvArrayControllers[newBinIndex] addObject:selectedObjects[j]];  // Ugh... will work if we didn't need to add a bin, but if not, we don't have an array controller.
+        //         // Actually, that's ok!  Just don't do it if there isn't one, reloadData will make one.
+        //     }
+
+        //     // It would be better to save the new bin index so that I can update both the cvArrayController and the symbolCollection
+
+
+        //     // Don't need this line as I already have a loop going above
+        //     // [selectedObjects makeObjectsPerformSelector:@selector(writeSymbolName:) withObject:newName];
+        //     // console.log("Made objects write " + newName + ".");
+        //     // console.log(selectedObjects);
+        //     // console.log([symbolCollectionArrayController contentArray]);  // not right yet... init is later.
+
+        //     // Maintain the structure of symbolCollections
+        //     //  If there's no bin for the new name, insert one.
+        //     //  Move the glyph into the new bin.
+        //     // Also be sure that maxRows and maxCols are updated
+        //     // var symbolCollection = [symbolCollectionArrayController contentArray][i];  // Won't work if we do inserts in this loop
+        //     // for (var j = 0; j < [selectedObjects count]; ++j)
+        //     // {
+        //     //     if ([[symbolCollection glyphList] containsObject:selectedObjects[j]])
+        //     //     {
+        //     //         // Move the glyph to the new bin and update symbolCollections
+        //     //     }
+        //     // }
+        // }
+        var selectedObjects = [cvArrayControllers[i] selectedObjects];
+
+        // Try it as a one-shot
+        // [cvArrayControllers[i] remove:self];  // Removes the controller's selected objects from the controller's collection
+
+        while([selectedObjects count] > 0)
         {
-            console.log("Inside j loop (found " + selectedObjects_count + " selectedObject.");
-            // Remove selectedObjects from their current symbolCollection bin
-            for (var k = 0; k < symbolCollectionArray_count; ++k)
+            var glyph = selectedObjects[0];
+            // [cvArrayControllers[i] removeObject:glyph];  // Maybe I don't need this?  We'll see.
+            // [cvArrayControllers[i] removeSelectedObjects:glyph];  // This may cause nullify to be called incorrectly, but should work for one selection
+            // We can assume that arranged objects aligns with cvArrayControllers... but not so much with the simple array, especially after the insert before
+            // Experiment with preservesSelection
+            [[symbolCollectionArrayController arrangedObjects][i] removeGlyph:glyph];  // Better confirm this first if there's an issue
+            if ([[[symbolCollectionArrayController arrangedObjects][i] glyphList] count] === 0)
             {
-                if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
+                [symbolCollectionArrayController removeObjectAtArrangedObjectIndex:i];  // will shift left everything, so [i] is now the next item
+                [cvArrayControllers removeObjectAtIndex:i];  // The collection view might complain... hopefully not too much
+                --symbolCollectionArray_count;  // Doesn't get used
+                --cvArrayControllers_count;  // Used by for loop
+                ++removalIndexAdjustment;  // unneeded
+                // --i;  // Hmmm, is this necessary?  I don't think so, I think I can continue with the same i (which is the next i)
+                    // I guess I did it to counteract the for loop's ++. I think the code will work either way in most cases, so I'm going to remove it.
+                    // (With the -- in, then the while loop will just iterate again in the way that the for loop normally would.)
+                    // Maybe I don't need the while... and it can be one loop.  Nah, the while is for selectedObjects, the for is for table rows
+                if (newBinIndex > i)
                 {
-                    // [self _removeGlyph:selectedObjects[j] fromSymbolCollection:symbolCollectionArray[j]];
-                    // symbolCollectionArray[j] addGlyphAndUpdateMaxRowAndMaxCol
-                    // I should actually just write [symbolCollection addGlyph] to keep maxRows and maxCols up to date.
-                    // Well, it would be nicer to read but a little slower, so yeah it'd be better, but I'd also have to rewrite
-                    // init.  I think I will do it, and not rewrite init, because init will work either way.
-                    console.log("Removed glyph with name " + [selectedObjects[j] idName] + " from symbolCollection " + k);
-                    console.log([[symbolCollectionArray[j] glyphList] count]);
-                    [symbolCollectionArray[k] removeGlyph:selectedObjects[j]];
-                    console.log([[symbolCollectionArray[j] glyphList] count]);
-                    if ([[symbolCollectionArray[k] glyphList] count] === 0)
-                    {
-                        // Remove this symbolCollection, and update symbolCollectionArray_count
-                        [symbolCollectionArray removeObjectAtIndex:[k]];
-                        --symbolCollectionArray_count;
-                        console.log("Just removed a symbolCollection:");
-                        console.log(symbolCollectionArray);
-                        // Now the collectionView is complaining... I wonder whether it's one that needs to display, because I don't really need it to.
-                    }
-                    break;
+                    --newBinIndex;
                 }
+                // By the way, the while loop will end on this iteration,
+                // since selectedObjects will certainly be zero if that was the last glyph in the collection
+                // Code for --i:
+                // [glyph writeSymbolName:newName];
+                // [cvArrayControllers[newBinIndex] addObject:glyph];
+                // [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
+                // break;  // the for loop will increment i back to the same value, and we'll continue from there
+                //         // Maybe instead I won't bother with going through the next for, I'll just leave i alone and do the while again.
             }
-            console.log("Changing name of glyph from " + [selectedObjects[j] idName] + " to " + newName);
-            [selectedObjects[j] writeSymbolName:newName];
-            // Add to the new bin
-            for (var k = 0; k < symbolCollectionArray_count; ++k)
-            {
-                if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
-                {
-                    // [self _addGlyph:selectedObjects[j] toSymbolCollection:symbolCollectionArray[j]];
-                    console.log("Adding glyph with name " + [selectedObjects[j] idName] + " to symbolCollection " + k);
-                    [symbolCollectionArray[k] addGlyph:selectedObjects[j]];
-                    break;
-                }
-            }
-            // Don't need this line as I already have a loop going above
-            // [selectedObjects makeObjectsPerformSelector:@selector(writeSymbolName:) withObject:newName];
-            // console.log("Made objects write " + newName + ".");
-            // console.log(selectedObjects);
-            // console.log([symbolCollectionArrayController contentArray]);  // not right yet... init is later.
+            [glyph writeSymbolName:newName];
+            [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
+            // [cvArrayControllers[newBinIndex] addObject:glyph];  // Shouldn't need to do this as it's bound to the symbolCollection... should be sufficient to just use the symbolCollectionArrayController
+            [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];  // Maybe don't need this, try setSelectedInsertedObjects
 
-            // Maintain the structure of symbolCollections
-            //  If there's no bin for the new name, insert one.
-            //  Move the glyph into the new bin.
-            // Also be sure that maxRows and maxCols are updated
-            // var symbolCollection = [symbolCollectionArrayController contentArray][i];  // Won't work if we do inserts in this loop
-            // for (var j = 0; j < [selectedObjects count]; ++j)
-            // {
-            //     if ([[symbolCollection glyphList] containsObject:selectedObjects[j]])
-            //     {
-            //         // Move the glyph to the new bin and update symbolCollections
-            //     }
-            // }
+            // selectedObjects = [cvArrayControllers[i] selectedObjects];  // Good, same i.  If we removed an object, then this is equivalent to iterating the for loop (but we just stick with the while loop)
+            // Also keep in mind that for now, we're probably not going to handle error where it was the last glyph...
+            // But it might be good to at least
+            selectedObjects = [selectedObjects removeObjectAtIndex:0];
         }
+        // I think the problem is due to the new collection view.
+        // Maybe shouldSelectRow can give a hint
+
+        // while([selectedObjects count] > 0)
+        // {
+        //     var glyph = selectedObjects[0];
+        //     [cvArrayControllers[i+removalIndexAdjustment] removeObject:glyph];
+        //     // [symbolCollectionArray[i] removeGlyph:glyph];
+        //     // We can assume that arranged objects aligns with cvArrayControllers... but not so much with the simple array, especially after the insert before
+        //     [[symbolCollectionArrayController arrangedObjects][i+removalIndexAdjustment] removeGlyph:glyph];  // Better confirm this first if there's an issue
+        //     if ([[[symbolCollectionArrayController arrangedObjects][i+removalIndexAdjustment] glyphList] count] === 0)
+        //     {
+        //         [symbolCollectionArrayController removeObjectAtArrangedObjectIndex:i+removalIndexAdjustment];
+        //         [cvArrayControllers removeObjectAtIndex:i+removalIndexAdjustment];  // The collection view might complain... hopefully not too much
+        //         --symbolCollectionArray_count;  // Doesn't get used
+        //         --cvArrayControllers_count;
+        //         ++removalIndexAdjustment;
+        //         --i;
+        //         if (newBinIndex > (i + removalIndexAdjustment)
+        //         {
+        //             --newBinIndex;
+        //         }
+        //         // By the way, the while loop will end on this iteration,
+        //         // since selectedObjects will certainly be zero if that was the last glyph in the collection
+        //     }
+        //     [glyph writeSymbolName:newName];
+        //     [cvArrayControllers[newBinIndex] addObject:glyph];
+        //     [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
+        //     selectedObjects = [cvArrayControllers[i] selectedObjects];
+        //     // Also keep in mind that for now, we're probably not going to handle error where it was the last glyph...
+        //     // But it might be good to at least
+        // }
     }
     console.log(symbolCollectionArray);  //
     console.log("Got here!");
     [theTableView noteNumberOfRowsChanged];
     [theTableView reloadData];  // breaks if an item was removed from the symbolCollectionArray (from which the tableView gets its data... but it's not a binding)
                                 // but the collectionViews are bound.  Maybe I can unbind them or something, or maybe they ought to be smarter.
+    // I need new collection views.
     console.log("And here!");
 
 
@@ -213,7 +332,6 @@
     // scroll bar,) so it's much better to just tell the tableView what to do explicitly (reloadData... after erasing
     // the data).  Side note: the SymbolOutline uses the former approach (binding.)
 }
-
 
 
 
