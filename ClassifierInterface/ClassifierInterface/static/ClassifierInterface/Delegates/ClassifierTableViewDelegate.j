@@ -5,7 +5,7 @@
 
 @implementation ClassifierTableViewDelegate : CPObject
 {
-    @outlet CPArrayController symbolCollectionArrayController;
+    @outlet CPArrayController symbolCollectionArrayController;  // Debug
     CPArray cvArrayControllers @accessors;
     int headerLabelHeight @accessors;
     int photoViewInset @accessors;
@@ -21,11 +21,13 @@
     return self;
 }
 
-- (void)initializeSymbolCollections:(Classifier)aClassifier
+// - (void)initializeSymbolCollections:(Classifier)aClassifier
+- (void)initializeSymbolCollections:(CPArrayController)classifierGlyphsArrayController
 {
     var i = 0,
-        glyphs = [aClassifier glyphs],
-        glyphs_count = [[aClassifier glyphs] count],
+        // glyphs = [aClassifier glyphs],
+        glyphs = [classifierGlyphsArrayController arrangedObjects],
+        glyphs_count = [glyphs count],
         symbolCollectionArray = [[CPMutableArray alloc] init];
     while (i < glyphs_count)
     // Assume the glyphs are sorted by id name.
@@ -58,6 +60,125 @@
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
+}
+- (void)writeSymbolName:(CPString)newName
+{
+        // I need to map the arrayControllers to theClassifier to get write to work.
+        // I don't need a global array controller if I just do some math :)  I love math.
+        // Unfortunately it's not efficient though.  I'd have to get the count from every array with less of an index.
+        // Maybe I'll do this global selection array controller.  I don't think I can do it with bindings.  Maybe I can
+        // do it by writing code into observeValueForKeyPath... code that will (manually) update the global array controller
+        // data.  It's not done via binding, but I think it's still complete.
+        // ( Unfortunately I have two models to update now... theClassifier for the server and symbolCollections for the client.
+        // MAYBE SymbolCollections look at the same data (in theClassifier)  That'd be sweet. )
+        // OK:  Try using the array controllers that we already have.  ClassifierTableViewDelegate.cvArrayControllers
+
+    // At the beginning, make a new bin based on the new name (if it's needed) and then calculate the correction of +1
+    // for the array controllers.  (Make a new array controller for the new bin also.)
+    // I could just call initialize again :P  Hahaha.  We are in hack mode
+    // TODO: Write this function that properly maintains symbolCollections for when a symbol changes name.  (For now, I just reload
+    // the things and let init to the work.)
+
+    var symbolCollectionArray = [symbolCollectionArrayController arrangedObjects],
+        symbolCollectionArray_count = [symbolCollectionArray count],
+        bucket_already_exists = false;
+
+    // TODO: Optimize, maybe with filters
+    for (var i = 0; i < symbolCollectionArray_count; ++i)
+    {
+        if ([symbolCollectionArray[i] symbolName] === newName)
+        {
+            bucket_already_exists = true;
+            break;
+        }
+    }
+    console.log("bucket_already_exists: " + bucket_already_exists);
+    if (! bucket_already_exists)
+    {
+        var newSymbolCollection = [[SymbolCollection alloc] init];
+        [newSymbolCollection setSymbolName:newName];
+        console.log("Adding new symbolCollection with name " + [newSymbolCollection symbolName] + ".");
+        [symbolCollectionArrayController addObject:newSymbolCollection];  // Don't worry about sorting, let arrangedObjects do that.
+        // Set maxRows and maxCols later.
+        ++symbolCollectionArray_count;  // Gets used in later loops
+    }
+
+    var cvArrayControllers_count = [cvArrayControllers count];
+    for (var i = 0; i < cvArrayControllers_count; ++i)
+    {
+        var selectedObjects = [cvArrayControllers[i] selectedObjects],
+            selectedObjects_count = [selectedObjects count];
+        // console.log([selectedObjects copy]);
+        // console.log(selectedObjects);
+        // console.log([symbolCollectionArrayController contentArray]);
+
+        for (var j = 0; j < selectedObjects_count; ++j)
+        {
+            // Remove selectedObjects from their current symbolCollection bin
+            for (var k = 0; k < symbolCollectionArray_count; ++k)
+            {
+                if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
+                {
+                    // [self _removeGlyph:selectedObjects[j] fromSymbolCollection:symbolCollectionArray[j]];
+                    // symbolCollectionArray[j] addGlyphAndUpdateMaxRowAndMaxCol
+                    // I should actually just write [symbolCollection addGlyph] to keep maxRows and maxCols up to date.
+                    // Well, it would be nicer to read but a little slower, so yeah it'd be better, but I'd also have to rewrite
+                    // init.  I think I will do it, and not rewrite init, because init will work either way.
+                    console.log("Removed glyph with name " + [selectedObjects[j] idName] + " from symbolCollection " + k);
+                    console.log([[symbolCollectionArray[j] glyphList] count]);
+                    [symbolCollectionArray[k] removeGlyph:selectedObjects[j]];  // removal isn't working
+                    console.log([[symbolCollectionArray[j] glyphList] count]);
+                    symbolCollectionArrayController
+                    break;  // hopefully only breaks out of one loop.
+                }
+            }
+            console.log("Changing name of glyph from " + [selectedObjects[j] idName] + " to " + newName);
+            [selectedObjects[j] writeSymbolName:newName];
+            // Add to the new bin
+            for (var k = 0; k < symbolCollectionArray_count; ++k)
+            {
+                if ([symbolCollectionArray[k] symbolName] === [selectedObjects[j] idName])
+                {
+                    // [self _addGlyph:selectedObjects[j] toSymbolCollection:symbolCollectionArray[j]];
+                    console.log("Adding glyph with name " + [selectedObjects[j] idName] + " to symbolCollection " + k);
+                    [symbolCollectionArray[k] addGlyph:selectedObjects[j]];
+                    break;
+                }
+            }
+            // Don't need this line as I already have a loop going above
+            // [selectedObjects makeObjectsPerformSelector:@selector(writeSymbolName:) withObject:newName];
+            // console.log("Made objects write " + newName + ".");
+            // console.log(selectedObjects);
+            // console.log([symbolCollectionArrayController contentArray]);  // not right yet... init is later.
+
+            // Maintain the structure of symbolCollections
+            //  If there's no bin for the new name, insert one.
+            //  Move the glyph into the new bin.
+            // Also be sure that maxRows and maxCols are updated
+            // var symbolCollection = [symbolCollectionArrayController contentArray][i];  // Won't work if we do inserts in this loop
+            // for (var j = 0; j < [selectedObjects count]; ++j)
+            // {
+            //     if ([[symbolCollection glyphList] containsObject:selectedObjects[j]])
+            //     {
+            //         // Move the glyph to the new bin and update symbolCollections
+            //     }
+            // }
+        }
+    }
+    console.log(symbolCollectionArray);
+    console.log("Got here!");
+    [theTableView reloadData];
+    console.log("And here!");
+
+
+    // At the end, make sure that the new bin has something in it.  (Shouldn't be necessary.)
+
+    // for (var i = 0; i < [selectedObjects count]; ++i)
+    // {
+    //     [selectedObjects[i] writeSymbolName:newName];
+    // }
+
+    // [classifierTableView reloadData];  // Uncomment this when properly rewriting this function.
 }
 - (void)close
 {
@@ -112,7 +233,7 @@
 // Set up the view to display.  (Delegate method.)
 // (Note: I do things in this function so that I have access to objectValue... which I don't in viewForTableColumn.)
 {
-    console.log("---willDisplayView---");
+    // console.log("---willDisplayView---");
     var symbolCollection = [[aTableView dataSource] tableView:aTableView objectValueForTableColumn:aTableColumn row:aRow],
         symbolName = [symbolCollection symbolName],  // If I use binding, I don't need this variable
         label = [[CPTextField alloc] initWithFrame:CGRectMake(0,0,CGRectGetWidth([aView bounds]), [self headerLabelHeight])];
@@ -135,11 +256,6 @@
     [cv setSelectionIndexes:[cvArrayControllers[aRow] selectionIndexes]];  // This should allow you to scroll down and back and have the selection persist
         // Now... when did cvArrayControllers[aRow] selectionIndexes get erased!
         // Maybe the binding isn't working... or maybe the array controller
-    if (aRow === 0)
-    {
-        console.log("Set cv0 selection indexes to:__ (this shouldn't deselect when scrolling!)");
-        console.log([cvArrayControllers[aRow] selectionIndexes]);
-    }
     [cvArrayControllers[aRow] bind:@"selectionIndexes" toObject:cv withKeyPath:@"selectionIndexes" options:nil];
         // Note: this is a clever binding.  We don't want to bind the view to the array controller because the view is transitory
         // and we'd end up with an accumulation of bindings.
@@ -173,6 +289,8 @@
                 // The reason that we ensure that firstIndex != CPNotFound is because this line of code causes ANOTHER call to observeValueForKeyPath.
                 // So we break an infinite loop by only nullifying other views' selections if the newIndexSet has a firstIndex (which isn't true for
                 // this line's change of selection)
+                // This might cause a problem when I change the indices from the SymbolTable.  Maybe I will unbind and rebind the cv as I do that.
+                // However, I'm leaving that function till later.
             }
         }
         // This part actually gets called TWICE when once would be enough.
@@ -192,6 +310,9 @@
     // It would be REALLY nice if I had that global array that was a composition of all the collection view arrays.
     // That way, on a shift click, I could ask that array controller for an index, and then make a range from there
     // to the new click.
+
+    // Another task for this function: maintain the selection indexes of a global array controller.  OR just loop through the ones I have
+    // each time someone hits enter on the text box.  If the models are looking at the same data, that SHOULD work.
 }
 
 
@@ -268,12 +389,11 @@
     [photoView setFrame:CGRectMake(0,0,[model maxCols] + (2 * [photoView inset]), [model maxRows] + (2 * [photoView inset]))];
     [photoView setAutoresizesSubviews:NO];
     [photoView setAutoresizingMask:CPViewMinXMargin | CPViewMinYMargin | CPViewMaxXMargin | CPViewMaxYMargin];
+    // var glyphListArrayController = [[[CPArrayController alloc] init] setContent:[model glyphList]];
+    // [photoView bind:@"toolTip" toObject:glyphListArrayController withKeyPath:@"arrangedObjects" options:nil];  // doesn't work.
     [itemPrototype setView:photoView];
     [cv setItemPrototype:itemPrototype];
-    [cv bind:@"content"
-        toObject:cvArrayController
-        withKeyPath:@"arrangedObjects"
-        options:nil];
+    [cv bind:@"content" toObject:cvArrayController withKeyPath:@"arrangedObjects" options:nil];
     [aView addSubview:cv];
     // [cvArrayController setContent:[model glyphList]];
         // I think this erases my selection indexes... but I do it to kick the collection view to display...

@@ -32,6 +32,7 @@ see http://280north.com/learn/tutorials/scrapbook-tutorial-2/
         [self addSubview:_imageView];
     }
     [_imageView setImage:[[CPImage alloc] initWithData:[anObject pngData]]];
+    // Commented code: trying to get autosizing to work.  This might allow me to resize more efficiently.
     // [_imageView setFrame:CGRectMake(10,10,[anObject nCols],[anObject nRows])];  // inset by 10 (half of 20... which is harcoded elsewhere)
     // [_imageView setFrame:CGRectMake(0,0,[anObject nCols], [anObject nRows])];
     // console.log("self inset (in setRepresented): " + [self inset]);  //null

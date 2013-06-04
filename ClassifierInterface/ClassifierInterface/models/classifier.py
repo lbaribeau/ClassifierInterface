@@ -54,10 +54,10 @@ class Classifier(models.Model):
             feature_list = features.getchildren()  # list of 'feature' elements
             # or features.xpath("feature")
             glyph_dict = {
-                'ulx': glyph.get('ulx'),
-                'uly': glyph.get('uly'),
-                'nrows': glyph.get('nrows'),
-                'ncols': glyph.get('ncols'),
+                'ulx': float(glyph.get('ulx')),
+                'uly': float(glyph.get('uly')),
+                'nrows': float(glyph.get('nrows')),
+                'ncols': float(glyph.get('ncols')),
                 # 'ids': {
                 #     'state': ids.get('state'),
                 #     'id': {
@@ -67,12 +67,12 @@ class Classifier(models.Model):
                 # },
                 'id_state': ids.get('state'),
                 'id_name': id_element.get('name'),
-                'id_confidence': id_element.get('confidence'),
+                'id_confidence': float(id_element.get('confidence')),
                 'data': self._base64_png_encode(glyph),
-                'feature_scaling': features.get('scaling'),
+                'feature_scaling': float(features.get('scaling')),
                 'features': [{
                     'name': f.get('name'),
-                    'values': f.text.split()
+                    'values': [float(n) for n in f.text.split()]
                 } for f in feature_list]
             }
             #glyph_dict = glyph.attrib
@@ -101,26 +101,26 @@ class Classifier(models.Model):
         glyphs_element = etree.SubElement(gamera_database, "glyphs")
         for json_glyph in classifier_glyphs:
             glyph_element = etree.SubElement(glyphs_element, "glyph",
-                                             uly=json_glyph['uly'],
-                                             ulx=json_glyph['ulx'],
-                                             nrows=json_glyph['nrows'],
-                                             ncols=json_glyph['ncols'])
+                                             uly=str(json_glyph['uly']), 
+                                             ulx=str(json_glyph['ulx']),
+                                             nrows=str(json_glyph['nrows']),
+                                             ncols=str(json_glyph['ncols']))
             ids_element = etree.SubElement(glyph_element, "ids",
                                            state=json_glyph['id_state'])
             etree.SubElement(ids_element, "id",
                              name=json_glyph['id_name'],
-                             confidence=json_glyph['id_confidence'])
+                             confidence=str(json_glyph['id_confidence']))
             data_element = etree.SubElement(glyph_element, "data")
             data_element.text = self._runlength_encode(json_glyph['data'])
             features_element = etree.SubElement(glyph_element, "features",
-                                                scaling=json_glyph['feature_scaling'])
+                                                scaling=str(json_glyph['feature_scaling']))
             for feature in json_glyph['features']:
                 f_element = etree.SubElement(features_element, "feature",
                                              name=feature['name'])
                                              #text=feature['values'])  # bad: need a string
                                              #text=''.join([val.append(' ') for val in feature['values']]) # Not understanding how awesome join is
                                              #text=' '.join(feature['values']) # bad: assigns an attribute called 'text'
-                f_element.text = ' '.join(feature['values'])
+                f_element.text = ' '.join([str(v) for v in feature['values']])
         f = open(self.classifier_path, 'w')
         f.write(etree.tostring(gamera_database, pretty_print=True, xml_declaration=True, encoding="utf-8"))
         return True

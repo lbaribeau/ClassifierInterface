@@ -54,14 +54,13 @@
                 //console.log(jsonObject[serverKey]);  // data field of Json (base64)
                 //console.log([CPData dataWithBase64:jsonObject[serverKey]]);  // decoded Json
             }
-            // Convert to integer?  I _will_ because I don't think it's important to keep the same characters
-            // (1.00000 will change to 1)
-            else if (objectKey === 'ulx' || objectKey === 'uly' ||
-                     objectKey === 'nRows' || objectKey === 'nCols' ||
-                     objectKey === 'featureScaling' || objectKey === 'idConfidence')
-            {
-                [self setValue:parseInt(jsonObject[serverKey]) forKey:objectKey];
-            }
+            // Comment out: type changing now done on server side.
+            // else if (objectKey === 'ulx' || objectKey === 'uly' ||
+            //          objectKey === 'nRows' || objectKey === 'nCols' ||
+            //          objectKey === 'featureScaling' || objectKey === 'idConfidence')
+            // {
+            //     [self setValue:parseInt(jsonObject[serverKey]) forKey:objectKey];
+            // }
             else
             {
                 [self setValue:jsonObject[serverKey] forKey:objectKey];
