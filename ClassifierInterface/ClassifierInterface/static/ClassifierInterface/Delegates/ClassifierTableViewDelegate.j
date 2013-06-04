@@ -56,7 +56,8 @@
     for (var j = 0; j < nSymbols; ++j)
     {
         cvArrayControllers[j] = [[CPArrayController alloc] init];
-        [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
+        // [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
+        [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
@@ -115,7 +116,8 @@
 
         // need to alloc a new array controller.
         [cvArrayControllers insertObject:[[CPArrayController alloc] init] atIndex:newBinIndex];
-        [cvArrayControllers[newBinIndex] setContent:[newSymbolCollection glyphList]];
+        // [cvArrayControllers[newBinIndex] setContent:[newSymbolCollection glyphList]];
+        [cvArrayControllers[newBinIndex] bind:@"content" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
         // Maybe that should have been a function because it's common code with init.
@@ -250,7 +252,14 @@
                 //         // Maybe instead I won't bother with going through the next for, I'll just leave i alone and do the while again.
             }
             [glyph writeSymbolName:newName];
+            console.log("Should update cvArrayController contentArray");
+            debugger;
+            console.log([[cvArrayControllers[i] contentArray] count]);
+            console.log([[cvArrayControllers[i] arrangedObjects] count]);
             [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
+            console.log([[cvArrayControllers[i] contentArray] count]);
+            console.log([[cvArrayControllers[i] arrangedObjects] count]);
+
             // [cvArrayControllers[newBinIndex] addObject:glyph];  // Shouldn't need to do this as it's bound to the symbolCollection... should be sufficient to just use the symbolCollectionArrayController
             [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];  // Maybe don't need this, try setSelectedInsertedObjects
 
