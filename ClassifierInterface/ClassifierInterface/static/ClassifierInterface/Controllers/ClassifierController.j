@@ -216,43 +216,21 @@ was pressed.*/
 
     console.log(theClassifier);
     [classifierTableViewDelegate writeSymbolName:[aSender stringValue]];  // This will change the model
-    console.log("Wrote " + [aSender stringValue]);
-    console.log(theClassifier);
-    // TODO: rewrite [classifierTableViewDelegate writeSymbolName] so that the following 3 lines aren't necesary
-    // Sort it:
-    // [theClassifier setGlyphs:[[theClassifier glyphs] sortedArrayUsingDescriptors:[[CPArray alloc] initWithObjects:[[CPSortDescriptor alloc] initWithKey:@"idName" ascending:YES]]]];
-      // Hmmm... that's going to wreck the array controllers!  I shouldn't rewrite this without using the array controllers
-      // Two sets of array controllers for the same model, wow.
-      // Maybe, don't sort the array at all, just use arrangedObjects for stuff.
-      // In that case, initializeSymbolCollections should go through an array controller, perhaps classifierGlyphArrayController.
-      // Also ensure that classifierGlyphArrayController sorts by idName  (in that case, the server won't have to sort for me.)
-      // Ok... that's done, same behavior.  Maybe I can write re-init a re-init more easily... or I should just write writeSymbolName properly.
-
-    // Well, maybe the wrong glyph is getting written, or when I reload the classifier it undoes it, because it looks like I get new models
-    // every time.
-    // [classifierTableViewDelegate initializeSymbolCollections:theClassifier];  // I think this doesn't work... I think the next write looks at the same array controller... that init shortcut is not working.
-
-    // The delegate should do these three lines.
-    // [classifierTableViewDelegate initializeSymbolCollections:classifierGlyphArrayController];  // I think this doesn't work... I think the next write looks at the same array controller... that init shortcut is not working.
-    // // console.log([[classifierTableViewDelegate symbolCollectionArrayController] contentArray]);
-    // [classifierTableView reloadData];
-    // Ugh... the first move works but things don't seem to work after that...
-    // The problem isn't the sorting... things aren't right after this.
-
-
-
-
-
 
     // Also update the symbolTable
     [symbolTableDelegate initializeSymbols:theClassifier];
     // I think this algorithm also works if the user used the symbol table to select, because that will affect the selection of the classifierTable.
     // [symbolTableDelegate writeSymbolName:[aSender stringValue]];  // Shouldn't be needed at all.
 
+    [classifierGlyphArrayController rearrangeObjects];
+    console.log("Hmmm...");
     [theClassifier makeAllDirty];
     //[theClassifier makeDirtyProperty:@"id_name"];
     [theClassifier ensureSaved];
     // TODO: instead of writing the entire classifier, try doing little patches.
+    console.log("Saved classifier.");
+    console.log(theClassifier);
+
 
 
 }

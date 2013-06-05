@@ -6,7 +6,7 @@
 @implementation ClassifierTableViewDelegate : CPObject
 {
     @outlet CPArrayController symbolCollectionArrayController;  // Debug
-    CPArray cvArrayControllers @accessors;
+    CPMutableArray cvArrayControllers @accessors;
     int headerLabelHeight @accessors;
     int photoViewInset @accessors;
     @outlet CPTableView theTableView;
@@ -55,16 +55,7 @@
     [cvArrayControllers initWithCapacity:nSymbols];
     for (var j = 0; j < nSymbols; ++j)
     {
-        cvArrayControllers[j] = [[CPArrayController alloc] init];
-        // [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
-        // [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
-        [cvArrayControllers[j] bind:@"contentArray" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
-        [cvArrayControllers[j] setAvoidsEmptySelection:NO];
-        [cvArrayControllers[j] setPreservesSelection:YES];  // Seems important for the loop that moves (removes) glyphs one at a time
-        [cvArrayControllers[j] rearrangeObjects];
-            // rearrangeObjects is just a good thing to do.  (I do it later, and doing it now makes it so that things don't get all rearranged.)
-            // It kills the selection though.
-        [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+        [cvArrayControllers addObject:[self _makeAndBindCvArrayControllerToSymbolCollection:symbolCollectionArray[j]]];  // gets added at index j
     }
 }
 - (void)writeSymbolName:(CPString)newName
@@ -109,15 +100,8 @@
         console.log("Adding new symbolCollection with name " + [newSymbolCollection symbolName] + ".");
         [symbolCollectionArrayController insertObject:newSymbolCollection atArrangedObjectIndex:newBinIndex];  // Maintains sort of arrangedObjects
             // Maybe I should call rearrangeObjects on symbolCollectionArrayController more often... then I shouldn't sort on the server
-
-        [cvArrayControllers insertObject:[[CPArrayController alloc] init] atIndex:newBinIndex];
-        [cvArrayControllers[newBinIndex] bind:@"contentArray" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
-      //[cvArrayControllers[newBinIndex] bind:@"content"      toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];  // Also works
-        [cvArrayControllers[newBinIndex] setAvoidsEmptySelection:NO];
-        [cvArrayControllers[newBinIndex] setPreservesSelection:YES];  // Seems important for the loop that moves (removes) glyphs one at a time
-        [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
-        // Maybe that should have been a function because it's common code with init.
-        // [theTableView noteNumberOfRowsChanged];  // Breaks it... and doesn't seem to be necessary as we reloadData anyway, which gets the # of rows right.
+        [cvArrayControllers insertObject:[self _makeAndBindCvArrayControllerToSymbolCollection:newSymbolCollection] atIndex:newBinIndex];
+      //   // [theTableView noteNumberOfRowsChanged];  // Breaks it... and doesn't seem to be necessary as we reloadData anyway, which gets the # of rows right.
     }
     var cvArrayControllers_count = [cvArrayControllers count],
         initiallySelectedObjects = [[CPMutableArray alloc] init];
@@ -154,6 +138,7 @@
                 }
                 // [theTableView noteNumberOfRowsChanged];
             }
+            console.log("Writing glyph, old name: " + [glyph idName] + " new name: " + newName);
             [glyph writeSymbolName:newName];
             [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
             // [cvArrayControllers[newBinIndex] addObject:glyph];  // Alternative way... possibly be more KVC compliant
@@ -169,6 +154,21 @@
     // [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     [cvArrayControllers[newBinIndex] setSelectedObjects:initiallySelectedObjects];
     [theTableView reloadData];
+}
+
+// - (void)          writeSymbolName                                :(CPString)        newName
+- (CPArrayController)_makeAndBindCvArrayControllerToSymbolCollection:(SymbolCollection)aSymbolCollection
+{
+    var cvArrayController = [[CPArrayController alloc] init];
+    [cvArrayController bind:@"contentArray" toObject:aSymbolCollection withKeyPath:@"glyphList" options:nil];  // try contentArray!
+    // [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // also works
+    [cvArrayController setAvoidsEmptySelection:NO];
+    [cvArrayController setPreservesSelection:YES];  // Seems important for the loop that moves (removes) glyphs one at a time
+    [cvArrayController rearrangeObjects];
+    // rearrangeObjects is just a good thing to do.  (I do it later, and doing it now makes it so that things don't get all rearranged.)
+    // It kills the selection though.
+    [cvArrayController setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+    return cvArrayController;
 }
 - (void)close
 {
