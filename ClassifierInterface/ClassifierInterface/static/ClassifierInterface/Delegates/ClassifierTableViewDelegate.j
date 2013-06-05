@@ -57,7 +57,8 @@
     {
         cvArrayControllers[j] = [[CPArrayController alloc] init];
         // [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
-        [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];
+        // [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
+        [cvArrayControllers[j] bind:@"contentArray" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
@@ -117,7 +118,8 @@
         // need to alloc a new array controller.
         [cvArrayControllers insertObject:[[CPArrayController alloc] init] atIndex:newBinIndex];
         // [cvArrayControllers[newBinIndex] setContent:[newSymbolCollection glyphList]];
-        [cvArrayControllers[newBinIndex] bind:@"content" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
+        // [cvArrayControllers[newBinIndex] bind:@"content" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
+        [cvArrayControllers[newBinIndex] bind:@"contentArray" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
         [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
         // Maybe that should have been a function because it's common code with init.
@@ -222,11 +224,11 @@
         while([selectedObjects count] > 0)
         {
             var glyph = selectedObjects[0];
-            // [cvArrayControllers[i] removeObject:glyph];  // Maybe I don't need this?  We'll see.
+            [cvArrayControllers[i] removeObject:glyph];  // Maybe I don't need this?  We'll see.
             // [cvArrayControllers[i] removeSelectedObjects:glyph];  // This may cause nullify to be called incorrectly, but should work for one selection
             // We can assume that arranged objects aligns with cvArrayControllers... but not so much with the simple array, especially after the insert before
             // Experiment with preservesSelection
-            [[symbolCollectionArrayController arrangedObjects][i] removeGlyph:glyph];  // Better confirm this first if there's an issue
+            // [[symbolCollectionArrayController arrangedObjects][i] removeGlyph:glyph];  // Better confirm this first if there's an issue
             if ([[[symbolCollectionArrayController arrangedObjects][i] glyphList] count] === 0)
             {
                 [symbolCollectionArrayController removeObjectAtArrangedObjectIndex:i];  // will shift left everything, so [i] is now the next item
@@ -253,13 +255,18 @@
             }
             [glyph writeSymbolName:newName];
             console.log("Should update cvArrayController contentArray");
-            debugger;
-            console.log([[cvArrayControllers[i] contentArray] count]);
-            console.log([[cvArrayControllers[i] arrangedObjects] count]);
+            // debugger;
+            console.log([[cvArrayControllers[newBinIndex] contentArray] count]);
+            console.log([[cvArrayControllers[newBinIndex] arrangedObjects] count]);
+            // Maybe the symbolCollection should HAVE the array controller.
+            // Maybe theClassifier should in fact be an array of symbolCollections
             [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
-            console.log([[cvArrayControllers[i] contentArray] count]);
-            console.log([[cvArrayControllers[i] arrangedObjects] count]);
-
+            // [cvArrayControllers[i] addObject:glyph];  // Should affect the symbolCollection  ... unless I need to bind the symbolCollection to the array controller
+                // it doesn't affect the symbolCollection
+                // It also doesn't update maxes, but I suppose I could call that.
+            console.log([[cvArrayControllers[newBinIndex] contentArray] count]);
+            console.log([[cvArrayControllers[newBinIndex] arrangedObjects] count]);  // Try instead of addGlyph, go through the cvArrayController.  (Never use addGlyph)
+                // Gwargh, arrangedObjects doesn't increase.  Better stop using it.
             // [cvArrayControllers[newBinIndex] addObject:glyph];  // Shouldn't need to do this as it's bound to the symbolCollection... should be sufficient to just use the symbolCollectionArrayController
             [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];  // Maybe don't need this, try setSelectedInsertedObjects
 
@@ -397,6 +404,16 @@
     [cvArrayControllers[aRow] bind:@"selectionIndexes" toObject:cv withKeyPath:@"selectionIndexes" options:nil];
         // Note: this is a clever binding.  We don't want to bind the view to the array controller because the view is transitory
         // and we'd end up with an accumulation of bindings.
+        // Gweh.  Problem: rename a couple of symbols, and then you can't select a symbol that has been renamed.  Maybe the array controller
+        // is still bound to the old collection view.  It'd be nice to get multi-select working on a glyph that has been moved... I think that
+        // would solve the issue.  Is it an issue with this binding?  Yeah... I need to make sure that I get a new cView if a move has happened.
+        // Maybe reloadData isn't enough.  The array controller needs to bind to the cv with the new item in it.
+        // Well is that even true... I think so... it would explain the behavior anyway (not all things being selected.)
+        // Well NO, the reason not all things are selected is because of shouldSelectRow and that the ac CONTENT MUST get the new item!
+        // Rodan:     [runsArrayController bind:@"contentArray" toObject:workflowObject withKeyPath:@"workflowRuns" options:nil];
+        //
+    console.log("Binding cvArrayController " + aRow + " selectionIndexes to new cv with " + [[cv content] count] + " items");
+        // This is just selection indexes... what about content?  Content goes the other way: the cv binds to the ac arranged objects.
     [cv addObserver:self forKeyPath:@"selectionIndexes" options:nil context:aRow];  // allows observeValueForKeyPath function
 }
 
@@ -532,7 +549,12 @@
     // [photoView bind:@"toolTip" toObject:glyphListArrayController withKeyPath:@"arrangedObjects" options:nil];  // doesn't work.
     [itemPrototype setView:photoView];
     [cv setItemPrototype:itemPrototype];
-    [cv bind:@"content" toObject:cvArrayController withKeyPath:@"arrangedObjects" options:nil];
+    // [cv bind:@"content" toObject:cvArrayController withKeyPath:@"arrangedObjects" options:nil];
+    [cv bind:@"content" toObject:cvArrayController withKeyPath:@"contentArray" options:nil];
+        // I'm having an issue where selecting a moved glyph doesn't work.
+        // I thought it was because the collection view was binding to arrangedObjects, which wasn't getting added to while
+        // contentArray was.  For now, I'm going to rule that out by binding to contentArray.  contentArray is the glyphList.
+
     [aView addSubview:cv];
     // [cvArrayController setContent:[model glyphList]];
         // I think this erases my selection indexes... but I do it to kick the collection view to display...
@@ -565,15 +587,22 @@
 - (void)tableView:(CPTableView)aTableView shouldSelectRow:(int)aRow
 // Returns the height of a specified row
 {
-    console.log("ShouldSelectRow");
+    console.log("ShouldSelectRow: [[cvArrayControllers[aRow] selectionIndexes] count] is " + [[cvArrayControllers[aRow] selectionIndexes] count] +
+        ", [[cvArrayControllers[aRow] contentArray] count] is " + [[cvArrayControllers[aRow] contentArray] count]);
+    [cvArrayControllers[aRow] rearrangeObjects];
     if ([[cvArrayControllers[aRow] selectionIndexes] count] === [[cvArrayControllers[aRow] contentArray] count])
     {
         // all are selected
+        console.log("ShouldSelectRow: deselecting items.");
         [cvArrayControllers[aRow] setSelectedObjects:[]];
     }
     else
     {
+        console.log("ShouldSelectRow: selecting " + [[cvArrayControllers[aRow] contentArray] count] + " items.");
         [cvArrayControllers[aRow] setSelectedObjects:[cvArrayControllers[aRow] contentArray]];
+        // Not setting all four... hmmm.  Print selectedObjects and contentArray... try to determine why the fourth isn't set.
+        console.log([cvArrayControllers[aRow] selectedObjects]);
+        console.log([cvArrayControllers[aRow] contentArray]);  // Maybe KVC doesn't get notified by addGlyph?  But content array's count goes up I think.
     }
     return NO;
 }
