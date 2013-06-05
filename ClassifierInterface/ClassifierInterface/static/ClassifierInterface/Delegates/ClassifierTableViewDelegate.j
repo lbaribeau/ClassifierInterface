@@ -59,7 +59,8 @@
         // [cvArrayControllers[j] setContent:[symbolCollectionArray[j] glyphList]];
         // [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
         [cvArrayControllers[j] bind:@"contentArray" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
-        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
+        [cvArrayControllers[j] setAvoidsEmptySelection:NO];
+        [cvArrayControllers[j] setPreservesSelection:YES];  // Seems important for the loop that moves (removes) glyphs one at a time
         [cvArrayControllers[j] rearrangeObjects];
             // rearrangeObjects is just a good thing to do.  (I do it later, and doing it now makes it so that things don't get all rearranged.)
             // It kills the selection though.
@@ -112,10 +113,11 @@
         [cvArrayControllers insertObject:[[CPArrayController alloc] init] atIndex:newBinIndex];
         [cvArrayControllers[newBinIndex] bind:@"contentArray" toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];
       //[cvArrayControllers[newBinIndex] bind:@"content"      toObject:newSymbolCollection withKeyPath:@"glyphList" options:nil];  // Also works
-        // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
+        [cvArrayControllers[newBinIndex] setAvoidsEmptySelection:NO];
+        [cvArrayControllers[newBinIndex] setPreservesSelection:YES];  // Seems important for the loop that moves (removes) glyphs one at a time
         [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
         // Maybe that should have been a function because it's common code with init.
-        // [theTableView noteNumberOfRowsChanged];
+        // [theTableView noteNumberOfRowsChanged];  // Breaks it... and doesn't seem to be necessary as we reloadData anyway, which gets the # of rows right.
     }
     var cvArrayControllers_count = [cvArrayControllers count],
         initiallySelectedObjects = [[CPMutableArray alloc] init];
@@ -126,9 +128,12 @@
         // Try it as a one-shot (?)  I think it's too tough because of the moving around of glyphs.
         // [cvArrayControllers[i] remove:self];  // Removes the controller's selected objects from the controller's collection
         // Perhaps, for style, I should quit using symbolCollectionArrayController completely (except for updateMaxes)
-        while([selectedObjects count] > 0)
+        // while([selectedObjects count] > 0)
+        while([[cvArrayControllers[i] selectedObjects] count] > 0)
         {
-            var glyph = selectedObjects[0];
+            // var glyph = selectedObjects[0];
+            var glyph = [cvArrayControllers[i] selectedObjects][0];
+            [cvArrayControllers[i] setSelectedObjects:[[cvArrayControllers[i] selectedObjects] removeObjectAtIndex:0]];
             [cvArrayControllers[i] removeObject:glyph];  // Note that this also removes the glyph from the symbolCollection's glyphList (same model)
                 // Perhaps cvArrayControllers should be renamed to glyphArrayControllers, and glyphList to glyphArray.
             if ([[[symbolCollectionArrayController arrangedObjects][i] glyphList] count] === 0)
@@ -153,9 +158,10 @@
             [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
             // [cvArrayControllers[newBinIndex] addObject:glyph];  // Alternative way... possibly be more KVC compliant
             // [symbolCollectionArrayController arrangedObjects][newBinIndex] updateMaxes];  // Alternative way
-            [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+            [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];  // Gets set later (TODO: don't bother)
                 // Experiment with setSelectedInsertedObjects
-            selectedObjects = [selectedObjects removeObjectAtIndex:0];
+            // selectedObjects = [selectedObjects removeObjectAtIndex:0];  // Try going through the controller
+            // [cvArrayControllers[i] removeSelectedObjects];
         }
     }
 
