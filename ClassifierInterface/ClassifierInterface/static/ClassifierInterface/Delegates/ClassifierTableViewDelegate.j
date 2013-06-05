@@ -60,6 +60,9 @@
         // [cvArrayControllers[j] bind:@"content" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
         [cvArrayControllers[j] bind:@"contentArray" toObject:symbolCollectionArray[j] withKeyPath:@"glyphList" options:nil];  // try contentArray!
         // [cvArrayControllers[j] setAvoidsEmptySelection:NO];  // May affect selection after deletion, default is YES
+        [cvArrayControllers[j] rearrangeObjects];
+            // rearrangeObjects is just a good thing to do.  (I do it later, and doing it now makes it so that things don't get all rearranged.)
+            // It kills the selection though.
         [cvArrayControllers[j] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
     }
 }
@@ -275,6 +278,8 @@
             // But it might be good to at least
             selectedObjects = [selectedObjects removeObjectAtIndex:0];
         }
+
+
         // I think the problem is due to the new collection view.
         // Maybe shouldSelectRow can give a hint
 
@@ -308,7 +313,10 @@
         //     // But it might be good to at least
         // }
     }
-    console.log(symbolCollectionArray);  //
+    [cvArrayControllers[newBinIndex] rearrangeObjects];  // Makes things work. (setSelectedObjects :contentArray was not working before I did this)
+    [cvArrayControllers[newBinIndex] setSelectionIndexes:[CPIndexSet indexSetWithIndexesInRange:CPMakeRange(0,0)]];
+
+    console.log(symbolCollectionArray);  // It'd be nice to keep the selection the same, so the use can see the move.  Especially since things get rearranged.
     console.log("Got here!");
     [theTableView noteNumberOfRowsChanged];
     [theTableView reloadData];  // breaks if an item was removed from the symbolCollectionArray (from which the tableView gets its data... but it's not a binding)
@@ -589,7 +597,6 @@
 {
     console.log("ShouldSelectRow: [[cvArrayControllers[aRow] selectionIndexes] count] is " + [[cvArrayControllers[aRow] selectionIndexes] count] +
         ", [[cvArrayControllers[aRow] contentArray] count] is " + [[cvArrayControllers[aRow] contentArray] count]);
-    [cvArrayControllers[aRow] rearrangeObjects];
     if ([[cvArrayControllers[aRow] selectionIndexes] count] === [[cvArrayControllers[aRow] contentArray] count])
     {
         // all are selected
