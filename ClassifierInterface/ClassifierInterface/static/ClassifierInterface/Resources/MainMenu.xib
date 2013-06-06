@@ -193,9 +193,38 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
+										<object class="NSButton" id="925758780">
+											<reference key="NSNextResponder" ref="939221232"/>
+											<int key="NSvFlags">258</int>
+											<string key="NSFrame">{{5, 28}, {124, 25}}</string>
+											<reference key="NSSuperview" ref="939221232"/>
+											<reference key="NSWindow"/>
+											<reference key="NSNextKeyView" ref="906201240"/>
+											<string key="NSReuseIdentifierKey">_NS:22</string>
+											<bool key="NSEnabled">YES</bool>
+											<object class="NSButtonCell" key="NSCell" id="416106609">
+												<int key="NSCellFlags">-2080374784</int>
+												<int key="NSCellFlags2">134217728</int>
+												<string key="NSContents">theClassifier</string>
+												<object class="NSFont" key="NSSupport" id="554673832">
+													<string key="NSName">LucidaGrande</string>
+													<double key="NSSize">13</double>
+													<int key="NSfFlags">1044</int>
+												</object>
+												<string key="NSCellIdentifier">_NS:22</string>
+												<reference key="NSControlView" ref="925758780"/>
+												<int key="NSButtonFlags">-2033434624</int>
+												<int key="NSButtonFlags2">160</int>
+												<string key="NSAlternateContents"/>
+												<string key="NSKeyEquivalent"/>
+												<int key="NSPeriodicDelay">400</int>
+												<int key="NSPeriodicInterval">75</int>
+											</object>
+											<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
+										</object>
 										<object class="NSScrollView" id="897897649">
 											<reference key="NSNextResponder" ref="939221232"/>
-											<int key="NSvFlags">314</int>
+											<int key="NSvFlags">274</int>
 											<object class="NSMutableArray" key="NSSubviews">
 												<bool key="EncodedWithXMLCoder">YES</bool>
 												<object class="NSClipView" id="1042793307">
@@ -206,7 +235,7 @@
 														<object class="NSTableView" id="852746998">
 															<reference key="NSNextResponder" ref="1042793307"/>
 															<int key="NSvFlags">256</int>
-															<string key="NSFrameSize">{132, 277}</string>
+															<string key="NSFrameSize">{132, 247}</string>
 															<reference key="NSSuperview" ref="1042793307"/>
 															<reference key="NSWindow"/>
 															<reference key="NSNextKeyView" ref="1044666408"/>
@@ -266,11 +295,7 @@
 																		<int key="NSCellFlags">337641536</int>
 																		<int key="NSCellFlags2">2048</int>
 																		<string key="NSContents">Text Cell</string>
-																		<object class="NSFont" key="NSSupport" id="554673832">
-																			<string key="NSName">LucidaGrande</string>
-																			<double key="NSSize">13</double>
-																			<int key="NSfFlags">1044</int>
-																		</object>
+																		<reference key="NSSupport" ref="554673832"/>
 																		<reference key="NSControlView" ref="852746998"/>
 																		<object class="NSColor" key="NSBackgroundColor" id="747356333">
 																			<int key="NSColorSpace">6</int>
@@ -321,7 +346,7 @@
 															<int key="NSTableViewGroupRowStyle">1</int>
 														</object>
 													</object>
-													<string key="NSFrame">{{1, 17}, {132, 277}}</string>
+													<string key="NSFrame">{{1, 17}, {132, 247}}</string>
 													<reference key="NSSuperview" ref="897897649"/>
 													<reference key="NSWindow"/>
 													<reference key="NSNextKeyView" ref="852746998"/>
@@ -350,7 +375,7 @@
 													<string key="NSFrame">{{1, 279}, {132, 15}}</string>
 													<reference key="NSSuperview" ref="897897649"/>
 													<reference key="NSWindow"/>
-													<reference key="NSNextKeyView" ref="906201240"/>
+													<reference key="NSNextKeyView" ref="925758780"/>
 													<string key="NSReuseIdentifierKey">_NS:60</string>
 													<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 													<int key="NSsFlags">1</int>
@@ -376,7 +401,7 @@
 												</object>
 												<reference ref="925527759"/>
 											</object>
-											<string key="NSFrame">{{0, 30}, {134, 295}}</string>
+											<string key="NSFrame">{{0, 60}, {134, 265}}</string>
 											<reference key="NSSuperview" ref="939221232"/>
 											<reference key="NSWindow"/>
 											<reference key="NSNextKeyView" ref="198550937"/>
@@ -1908,6 +1933,14 @@
 					<int key="connectionID">1047</int>
 				</object>
 				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">printTheClassifier:</string>
+						<reference key="source" ref="328541566"/>
+						<reference key="destination" ref="925758780"/>
+					</object>
+					<int key="connectionID">1051</int>
+				</object>
+				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">classifierController</string>
 						<reference key="source" ref="334228070"/>
@@ -2275,6 +2308,7 @@
 							<reference ref="906201240"/>
 							<reference ref="82974688"/>
 							<reference ref="897897649"/>
+							<reference ref="925758780"/>
 						</object>
 						<reference key="parent" ref="5853716"/>
 					</object>
@@ -2963,6 +2997,20 @@
 						<reference key="object" ref="366915567"/>
 						<reference key="parent" ref="0"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">1049</int>
+						<reference key="object" ref="925758780"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="416106609"/>
+						</object>
+						<reference key="parent" ref="939221232"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">1050</int>
+						<reference key="object" ref="416106609"/>
+						<reference key="parent" ref="925758780"/>
+					</object>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="flattenedProperties">
@@ -2976,6 +3024,8 @@
 					<string>1020.IBPluginDependency</string>
 					<string>1023.IBPluginDependency</string>
 					<string>1046.IBPluginDependency</string>
+					<string>1049.IBPluginDependency</string>
+					<string>1050.IBPluginDependency</string>
 					<string>129.IBPluginDependency</string>
 					<string>136.IBPluginDependency</string>
 					<string>143.IBPluginDependency</string>
@@ -3101,6 +3151,8 @@
 				</object>
 				<object class="NSArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -3254,7 +3306,7 @@
 				<reference key="dict.values" ref="0"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">1048</int>
+			<int key="maxID">1051</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3319,6 +3371,7 @@
 							<string>new:</string>
 							<string>open:</string>
 							<string>openClassifier:</string>
+							<string>printTheClassifier:</string>
 							<string>showAreYouSureWindow:</string>
 							<string>writeSymbolName:</string>
 						</object>
@@ -3329,6 +3382,7 @@
 							<string>NSButton</string>
 							<string>NSMenuItem</string>
 							<string>NSMenuItem</string>
+							<string>NSButton</string>
 							<string>NSButton</string>
 							<string>NSButton</string>
 							<string>NSTextField</string>
@@ -3344,6 +3398,7 @@
 							<string>new:</string>
 							<string>open:</string>
 							<string>openClassifier:</string>
+							<string>printTheClassifier:</string>
 							<string>showAreYouSureWindow:</string>
 							<string>writeSymbolName:</string>
 						</object>
@@ -3371,6 +3426,10 @@
 							</object>
 							<object class="IBActionInfo">
 								<string key="name">openClassifier:</string>
+								<string key="candidateClassName">NSButton</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">printTheClassifier:</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBActionInfo">

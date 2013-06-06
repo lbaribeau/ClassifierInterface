@@ -26,28 +26,26 @@
 {
     var i = 0,
         // glyphs = [aClassifier glyphs],
-        glyphs = [classifierGlyphsArrayController arrangedObjects],
+        glyphs = [classifierGlyphsArrayController arrangedObjects],  // I think this may break write... I need to always use the model directly
+        // glyphs = [classifierGlyphsArrayController contentArray],
         glyphs_count = [glyphs count],
         symbolCollectionArray = [[CPMutableArray alloc] init];
+    console.log("Does it break things when I use classifierGlyphsArrayController arrangedObjects?");
+    console.log([classifierGlyphsArrayController arrangedObjects]);
+    console.log([classifierGlyphsArrayController contentArray]);  // Same glyphs.
     while (i < glyphs_count)
     // Assume the glyphs are sorted by id name.
     // Make an array for each id name.
     {
         var symbolCollection = [[SymbolCollection alloc] init],
-            symbolName = [glyphs[i] idName],
-            maxRows = 0,
-            maxCols = 0;
+            symbolName = [glyphs[i] idName];
         [symbolCollection setSymbolName:symbolName];
         for (; i < glyphs_count && [glyphs[i] idName] == symbolName; ++i)
         {
-            if ([glyphs[i] nRows] > maxRows)
-                maxRows = [glyphs[i] nRows];
-            if ([glyphs[i] nCols] > maxCols)
-                maxCols = [glyphs[i] nCols];
-            [symbolCollection addGlyph:glyphs[i]];
+            // console.log(glyphs[i]);
+            [symbolCollection addGlyph:glyphs[i]];  // Maybe I could BIND to a sub array instead.
         }
-        [symbolCollection setMaxRows:maxRows];
-        [symbolCollection setMaxCols:maxCols];
+        // console.log([symbolCollection glyphList]);  /// Hmmm... ensure that whenever I write a glyph it's in the classifier glyph range.
         [symbolCollectionArray addObject:symbolCollection];
     }
     [symbolCollectionArrayController setContent:symbolCollectionArray];
@@ -139,6 +137,7 @@
                 // [theTableView noteNumberOfRowsChanged];
             }
             console.log("Writing glyph, old name: " + [glyph idName] + " new name: " + newName);
+            console.log(glyph);
             [glyph writeSymbolName:newName];
             [[symbolCollectionArrayController arrangedObjects][newBinIndex] addGlyph:glyph];
             // [cvArrayControllers[newBinIndex] addObject:glyph];  // Alternative way... possibly be more KVC compliant
@@ -408,10 +407,21 @@
         // Careful about changing this though... it'll affect the row height calculation.
         // That will be fixed by using the same array controller from the row height (in fact, just delete that argument.)
     [cv setContent:[model glyphList]];  // Hopefully the binding still works, I'll have to test that later.
+    // [cv bind:@"content" toObject:cvArrayController withKeyPath:@"contentArray" options:nil];  // Tried kicking the collectionView by binding again, doesn't work.
         // Recall: I had to interrupt the pattern of ONLY BINDING and NOT CALLING SetContent because that required that
         // I setContent of the array controller AFTER the view has been bound.  However, the view has to be rebuilt whenever you
         // scroll past it, so I cannot setContent of the array controller that often!  It erases the selection!  That, in short,
         // is why I need to both BIND and setContent.
+        // Ack... I think this causes write to work only once, I end up writing to this copied glyph!!!
+        // Ideas:  Make sure to use the array controller's 'selectionIndexes' instead of 'selectedObjects'
+        //  ... well, that doesn't fix anything... I'd still be writing the wrong glyph.
+        //  Hmmm, the selectedObjects are those of the cv, but maybe I can query the ac's contentArray with selectionIndexes.
+        //  (Hopefully, the ac's contentArray remains the right objects while the selectedObjects end up being this copy, which is
+        //  is why write stops getting to the server.  TODO.)
+        // Another idea is to search for the right glyph by comparing pngData.
+        // Actually, this doesn't even make a copy, I'm not getting this yet.  I still need to find where the glyphs with different UIDs
+        // from the classifier come from.
+    // console.log("New glyph UID range: " = )
 
     // console.log("_make returning cv for row: " + aRow + " of height: " + CGRectGetHeight([cv frame]));
     return cv;

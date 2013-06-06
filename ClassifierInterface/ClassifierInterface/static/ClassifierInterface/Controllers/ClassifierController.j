@@ -215,6 +215,8 @@ was pressed.*/
     // [theClassifier ensureSaved];
 
     console.log(theClassifier);
+    console.log([[theClassifier glyphs][0] UID]);
+
     [classifierTableViewDelegate writeSymbolName:[aSender stringValue]];  // This will change the model
 
     // Also update the symbolTable
@@ -222,14 +224,16 @@ was pressed.*/
     // I think this algorithm also works if the user used the symbol table to select, because that will affect the selection of the classifierTable.
     // [symbolTableDelegate writeSymbolName:[aSender stringValue]];  // Shouldn't be needed at all.
 
-    [classifierGlyphArrayController rearrangeObjects];
+    [classifierGlyphArrayController rearrangeObjects];  // Hmm... probably a good idea since some writes happened.
     console.log("Hmmm...");
     [theClassifier makeAllDirty];
     //[theClassifier makeDirtyProperty:@"id_name"];
     [theClassifier ensureSaved];
     // TODO: instead of writing the entire classifier, try doing little patches.
     console.log("Saved classifier.");
-    console.log(theClassifier);
+    console.log(theClassifier);  // Same classifier as above... the indices change elsewhere...
+    console.log([[theClassifier glyphs][0] UID]);
+
 
 
 
@@ -277,6 +281,10 @@ was pressed.*/
         [symbolTableDelegate close];
         [classifierTableViewDelegate close];
     }
+}
+- (@action)printTheClassifier:(CPButton)aSender  // For debugging
+{
+    console.log([[theClassifier glyphs][0] UID]);
 }
 
 
