@@ -12,34 +12,25 @@
     @outlet CPArrayController classifierArrayController;
 
     @outlet CPWindow newClassifierWindow;
-    @outlet InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
+    InitNewFetchClassifiersDelegate initNewFetchClassifiersDelegate;
     @outlet NewClassifierTextfieldDelegate newClassifierTextfieldDelegate;
     @outlet CPButton createButton;
     @outlet CPTextField newClassifierTextfield;
     @outlet CPTextField nameUsedLabel;
     @outlet CPTextField statusLabel;
     @outlet CPWindow openClassifierWindow;
-    @outlet InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
+    InitOpenFetchClassifiersDelegate initOpenFetchClassifiersDelegate;
     @outlet CPButton openButton;
     @outlet CPWindow deleteClassifierWindow;
     @outlet CPTableView openClassifierTableView;
     @outlet OpenClassifierTableViewDelegate openClassifierTableViewDelegate;
 
     @outlet CPArrayController classifierGlyphArrayController;
-    @outlet CPCollectionView cv;
-            CPArray imageList;
 
     @outlet SymbolTableDelegate symbolTableDelegate;
 
     @outlet ClassifierTableViewDelegate classifierTableViewDelegate;
     @outlet CPTableView classifierTableView;
-    // @outlet CPArrayController symbolCollectionArrayController;  // do close, and then keep deleting comments
-
-
-    // Not currently used.
-    @outlet LoadClassifiersDelegate loadClassifiersDelegate;
-    @outlet SaveClassifierDelegate saveClassifierDelegate;
-
 }
 - (void)awakeFromCib
 {
@@ -50,6 +41,10 @@
     [openClassifierTableView setDelegate:openClassifierTableViewDelegate];
     [classifierTableView setDelegate:classifierTableViewDelegate];
     [classifierTableView setDataSource:classifierTableViewDelegate];
+
+    // Allocating delegates here as to remove clutter from XCode with delegates that do very little.
+    initNewFetchClassifiersDelegate  = [[InitNewFetchClassifiersDelegate alloc] init:self];
+    initOpenFetchClassifiersDelegate = [[InitOpenFetchClassifiersDelegate alloc] init:self];
 }
 
 - (@action)new:(CPMenuItem)aSender
@@ -176,17 +171,10 @@ was pressed.*/
                                     options:nil];
     [classifierGlyphArrayController setSortDescriptors:[[CPArray alloc] initWithObjects:[[CPSortDescriptor alloc] initWithKey:@"idName" ascending:YES]]];
 
-    //[classifierGlyphTableView bind:@"content"
-    //                          toObject:classifierGlyphArrayController
-    //                          withKeyPath:@""]
     // I'm not sure that the classifierGlyphArrayController gets used at all, as I
     // don't have a view for which there is one view per glyph.
-
-    // [self setUpCollectionView];  // Gives pngData error since I changed PhotoView
-
-    // [classifierTableViewDelegate initializeSymbolCollections:theClassifier];
-    [classifierTableViewDelegate initializeSymbolCollections:classifierGlyphArrayController];
-    [classifierTableView reloadData];
+    // [classifierTableViewDelegate initializeTableView:theClassifier];
+    [classifierTableViewDelegate initializeTableView:classifierGlyphArrayController];
 
     [symbolTableDelegate initializeSymbols:theClassifier];
 }
@@ -233,35 +221,8 @@ was pressed.*/
     console.log("Saved classifier.");
     console.log(theClassifier);  // Same classifier as above... the indices change elsewhere...
     console.log([[theClassifier glyphs][0] UID]);
-
-
-
-
 }
-/*
-- (@action)save:(CPMenuItem)aSender
-// Save glyphs to xml on server
-{
-    if (theClassifier)
-    {
-        //[WLRemoteAction schedule:WLRemoteActionPutType
-        //                path:[theClassifier pk]
-        //                delegate:SaveClassifierDelegate
-        //                message:@"Save classifier"];
-        //[theClassifier ensureCreated];
-        // patch and ensure saved
-        // have patch contain the changed fields
 
-        [theClassifier ensureSaved];
-        [statusLabel setStringValue:@"Saved."];
-    }
-    else
-    {
-        // TODO: Error checking: Grey out the Save function on the menu until something
-        // is open.
-        [statusLabel setStringValue:@"Cannot save, there is no open file."];
-    }
-}*/
 - (@action)close:(CPMenuItem)aSender
 {
     if (theClassifier)
@@ -287,98 +248,38 @@ was pressed.*/
     console.log([[theClassifier glyphs][0] UID]);
 }
 
-
-
-- (void)fetchClassifiers
-// Fetches classifiers and assigns them to classifierArrayController's content.
-// NOTE: No longer used!
-// I am opting for more controlled versions of this functionality.
-// When I do a fetch, generally want control of the callback.
-{
-    [WLRemoteAction schedule:WLRemoteActionGetType
-                    path:'/classifiers/'
-                    delegate:loadClassifiersDelegate
-                    message:"Loading classifier list for new"];
-}
-- (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
-{
-    var classifiers = [Classifier objectsFromJson:[anAction result]];
-    [classifierArrayController setContent:classifiers];
-        // I get a warning for the previous line, not sure why...
-        // ends up in CPURLConnection.j
-}
-
-
-- (void)setUpCollectionView
-/* This function isn't currently being used as I am going with a table view for now */
-{
-    [cv setAutoresizingMask:CPViewWidthSizable];
-    [cv setMinItemSize:CGSizeMake(100, 100)];
-    [cv setMaxItemSize:CGSizeMake(100, 100)];
-    [cv setDelegate:self];
-    [cv setSelectable:YES];
-
-    var itemPrototype = [[CPCollectionViewItem alloc] init];
-    [itemPrototype setView:[[PhotoView alloc] initWithFrame:CGRectMakeZero()]];
-    [cv setItemPrototype:itemPrototype];
-
-
-    imageList = [];
-    var theClassifierGlyphs = [theClassifier glyphs];
-    for (var i = 0; i < theClassifierGlyphs.length; i++)
-    {
-        console.log("i is " + i);
-        var glyphImageData = [theClassifierGlyphs[i] pngData],
-            glyphImage = [[CPImage alloc] initWithData:glyphImageData];
-        imageList[i] = glyphImage;
-    }
-    [cv setContent:imageList];
-    [cv setBackgroundColor:[CPColor blueColor]];
-
-    //[tv setBackgroundColor:[CPColor clearColor]];
-
-    //[tv setHeadverView:cv];
-
-    // I would prefer if I didn't have to make a pile of CPImages but there's no other way
-    // with the collection view from what I can tell.  Maybe I can rewrite the
-    // glyph model?  It could be done with parallel arrays, and glyph.pngData would
-    // point to an image data in a parallel image array.  I don't even know if you can
-    // get the data back out of an image... And do I even need the functionality of
-    // a collection view???  I had better put this aside and start working on 'Save' with
-    // the table view.
-}
+// - (void)fetchClassifiers
+// // Fetches classifiers and assigns them to classifierArrayController's content.
+// // NOTE: No longer used!
+// // I am opting for more controlled versions of this functionality.
+// // When I do a fetch, generally want control of the callback.
+// // Another way might be to post a notification.
+// {
+//     [WLRemoteAction schedule:WLRemoteActionGetType
+//                     path:'/classifiers/'
+//                     delegate:loadClassifiersDelegate  // would just call fetchClassifiersDidFinish
+//                     message:"Loading classifier list for new"];
+// }
+// - (void)fetchClassifiersDidFinish:(WLRemoteAction)anAction
+// {
+//     var classifiers = [Classifier objectsFromJson:[anAction result]];
+//     [classifierArrayController setContent:classifiers];
+//         // I get a warning for the previous line, not sure why...
+//         // ends up in CPURLConnection.j
+// }
 
 @end
 
-
-
-
-@implementation LoadClassifiersDelegate : CPObject
-{
-    @outlet ClassifierController classifierController;
-}
-- (void)remoteActionDidFinish:(WLRemoteAction)anAction
-{
-    [classifierController fetchClassifiersDidFinish:anAction];
-}
-@end
-
-
-@implementation SaveClassifierDelegate : CPObject
-{
-    @outlet     ClassifierController classifierController;
-}
-- (void)remoteActionDidFinish:(WLRemoteAction)anAction
-{
-    // What does the response look like?
-    // TODO: write some kind of validation or the response here.
-    [classifierController saveActionDidFinish:anAction];
-}
-@end
 
 @implementation InitNewFetchClassifiersDelegate : CPObject
 {
-    @outlet ClassifierController classifierController;
+    ClassifierController classifierController;
+}
+- (id)init:(ClassifierController)aClassifierController
+{
+    self = [super init];
+    classifierController = aClassifierController;
+    return self;
 }
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {
@@ -388,8 +289,13 @@ was pressed.*/
 
 @implementation InitOpenFetchClassifiersDelegate : CPObject
 {
-    @outlet ClassifierController classifierController;
-
+    ClassifierController classifierController;
+}
+- (id)init:(ClassifierController)aClassifierController
+{
+    self = [super init];
+    classifierController = aClassifierController;
+    return self;
 }
 - (void)remoteActionDidFinish:(WLRemoteAction)anAction
 {

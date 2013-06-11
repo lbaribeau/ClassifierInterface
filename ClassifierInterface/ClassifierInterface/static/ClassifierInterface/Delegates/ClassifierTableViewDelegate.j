@@ -22,7 +22,7 @@
 }
 
 // - (void)initializeSymbolCollections:(Classifier)aClassifier
-- (void)initializeSymbolCollections:(CPArrayController)classifierGlyphsArrayController
+- (void)initializeTableView:(CPArrayController)classifierGlyphsArrayController
 {
     var i = 0,
         // glyphs = [aClassifier glyphs],
@@ -55,6 +55,7 @@
     {
         [cvArrayControllers addObject:[self _makeAndBindCvArrayControllerToSymbolCollection:symbolCollectionArray[j]]];  // gets added at index j
     }
+    [theTableView reloadData];
 }
 - (void)writeSymbolName:(CPString)newName
 {
@@ -421,6 +422,8 @@
         // Another idea is to search for the right glyph by comparing pngData.
         // Actually, this doesn't even make a copy, I'm not getting this yet.  I still need to find where the glyphs with different UIDs
         // from the classifier come from.
+        // Remember, the problem is that theClassifier gets new glyphs, which the array controllers keep the same glyphs!
+        // Maybe there's a way to get the cv to work without calling setContent... try reading CollectionView docs to look for alternatives.
     // console.log("New glyph UID range: " = )
 
     // console.log("_make returning cv for row: " + aRow + " of height: " + CGRectGetHeight([cv frame]));

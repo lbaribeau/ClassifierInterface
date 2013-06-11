@@ -30,7 +30,8 @@
     sessionID = [[CPCookie alloc] initWithName:@"sessionid"];
     CSRFToken = [[CPCookie alloc] initWithName:@"csrftoken"];
     [[WLRemoteLink sharedRemoteLink] setDelegate:self];
-    [theWindow setFullPlatformWindow:YES];
+    // [theWindow setFullPlatformWindow:YES];
+
     [WLRemoteLink setDefaultBaseURL:@""];
 }
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification

@@ -26,6 +26,8 @@
 {
     console.log("In removeGlyph");
     console.log([[self glyphList] count]);
+    console.log(glyph);
+
     [[self glyphList] removeObject:glyph];
     console.log([[self glyphList] count]);
     [self updateMaxes];
